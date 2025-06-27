@@ -116,4 +116,54 @@ class OrderController extends Controller
     {
         return view('thankyou');
     }
+
+    public function checkDelivery(Request $request)
+    {
+        $request->validate([
+            'postcode' => 'required|string',
+            'product_ids' => 'required|array',
+            'product_ids.*' => 'exists:products,id',
+        ]);
+
+        $postcode = trim($request->input('postcode'));
+        $productIds = $request->input('product_ids');
+
+        $coords = GoogleGeocodingService::geocode($postcode);
+
+        if (!$coords) {
+            return response()->json(['error' => 'Adres niet gevonden'], 422);
+        }
+
+        $dayName = strtolower(now()->locale('nl')->dayName);
+        $cityData = config("delivery.cities.$dayName");
+
+        if (!$cityData) {
+            return response()->json(['error' => 'Vandaag wordt er niet bezorgd.'], 422);
+        }
+
+        $afstand = GeoHelper::haversine(
+            $coords['lat'], $coords['lng'],
+            $cityData['lat'], $cityData['lng']
+        );
+
+        // Als afstand > 10km is, geen levering mogelijk voor ALLE producten
+        if ($afstand > 10) {
+            $result = [];
+            foreach ($productIds as $id) {
+                $result[$id] = false;
+            }
+            return response()->json($result);
+        }
+
+        // Optioneel: je kan per product extra check doen, hier nemen we aan dat het geldt voor alle producten
+        $result = [];
+        foreach ($productIds as $id) {
+            $result[$id] = true;
+        }
+
+        return response()->json($result);
+    }
+
+
 }
+

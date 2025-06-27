@@ -10,4 +10,15 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    // in App\Models\Product.php
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'pickup_stock',
+        'delivery_stock',
+        'is_active',
+    ];
+
+
 }

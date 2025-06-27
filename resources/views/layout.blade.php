@@ -10,7 +10,7 @@
     <header>
         <h1><a href="{{ route('home') }}">Amayzing</a></h1>
         <nav>
-            <a href="{{ route('checkout') }}">Winkelmandje</a>
+            <a href="{{ route('checkout.index') }}">Winkelmandje</a>
         </nav>
     </header>
     @yield('content')

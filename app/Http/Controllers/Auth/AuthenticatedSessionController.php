@@ -28,6 +28,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Check admin after login
+        $user = Auth::user();
+        if (!$user->isAdmin()) {
+            Auth::logout();
+
+            return redirect('/login')->withErrors([
+                'email' => 'Je hebt geen toestemming om in te loggen.'
+            ]);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
