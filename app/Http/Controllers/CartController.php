@@ -5,23 +5,21 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Session;
+use App\Services\DeliveryCheckerService;
 
 class CartController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $cart = Session::get('cart', []);
-
+        $cart = $request->session()->get('cart', []);
         $productIds = array_keys($cart);
-
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-        // Combineer cart met producten voor de view
         $cartWithProducts = [];
 
         foreach ($cart as $productId => $types) {
             if (!isset($products[$productId])) {
-                continue; // Product niet gevonden, overslaan
+                continue;
             }
 
             foreach ($types as $type => $data) {
@@ -32,32 +30,60 @@ class CartController extends Controller
             }
         }
 
-        return view('cart.index', ['cart' => $cartWithProducts]);
-    }
+        $typesInCart = collect($cart)->flatMap(fn($types) => array_keys($types))->unique();
 
+        $deliveryMethod = $typesInCart->count() === 1 ? $typesInCart->first() : 'afhalen';
+
+        return view('cart.index', [
+            'cart' => $cartWithProducts,
+            'deliveryMethod' => $deliveryMethod,
+        ]);
+    }
 
     public function add(Request $request, Product $product)
     {
         $request->validate([
             'type' => 'required|in:afhalen,bezorgen',
+            'quantity' => 'required|integer|min:1',
         ]);
 
         $type = $request->input('type');
-        $cart = Session::get('cart', []);
+        $quantity = (int) $request->input('quantity');
+        $postcode = $request->input('postcode');
+        $housenumber = $request->input('housenumber');
 
-        $currentQty = $cart[$product->id][$type]['quantity'] ?? 0;
+        $cart = $request->session()->get('cart', []);
+        $existingTypes = collect($cart)->flatMap(fn($types) => array_keys($types))->unique();
+
+        if ($existingTypes->isNotEmpty() && !$existingTypes->contains($type)) {
+            return redirect()->route('cart.index')->with('error', 'Je kunt niet afhalen en bezorgen combineren in één bestelling.');
+        }
 
         $availableStock = $type === 'afhalen' ? $product->pickup_stock : $product->delivery_stock;
+        $currentQty = $cart[$product->id][$type]['quantity'] ?? 0;
 
-        if ($availableStock <= $currentQty) {
+        if ($currentQty + $quantity > $availableStock) {
             return redirect()->route('cart.index')->with('error', 'Je kunt niet meer toevoegen dan de beschikbare voorraad.');
         }
 
+        if ($type === 'bezorgen') {
+            if (!$postcode || !$housenumber) {
+                return redirect()->route('cart.index')->with('error', 'Postcode en huisnummer zijn verplicht voor bezorgen.');
+            }
+
+            $deliveryChecker = app(DeliveryCheckerService::class);
+            $checkResult = $deliveryChecker->check($postcode, $housenumber);
+
+            if (!$checkResult->allowed) {
+                return redirect()->route('cart.index')->with('error', 'Bezorging is niet mogelijk op dit adres: ' . strip_tags($checkResult->message));
+            }
+        }
+
         $cart[$product->id][$type] = [
-            'quantity' => $currentQty + 1,
+            'quantity' => $currentQty + $quantity,
         ];
 
-        Session::put('cart', $cart);
+        $request->session()->put('cart', $cart);
 
         return redirect()->route('cart.index')->with('success', 'Product toegevoegd!');
     }
@@ -71,13 +97,12 @@ class CartController extends Controller
 
         $type = $request->input('type');
         $quantity = (int) $request->input('quantity');
-        $cart = Session::get('cart', []);
+        $cart = $request->session()->get('cart', []);
 
         $availableStock = $type === 'afhalen' ? $product->pickup_stock : $product->delivery_stock;
 
         if ($quantity <= 0) {
             unset($cart[$product->id][$type]);
-            // Indien geen types meer voor dit product, unset product key
             if (empty($cart[$product->id])) {
                 unset($cart[$product->id]);
             }
@@ -90,7 +115,7 @@ class CartController extends Controller
             ];
         }
 
-        Session::put('cart', $cart);
+        $request->session()->put('cart', $cart);
 
         return redirect()->route('cart.index')->with('success', "Aantal van {$product->name} ({$type}) is bijgewerkt.");
     }
@@ -102,7 +127,7 @@ class CartController extends Controller
         ]);
 
         $type = $request->input('type');
-        $cart = Session::get('cart', []);
+        $cart = $request->session()->get('cart', []);
 
         if (isset($cart[$product->id][$type])) {
             unset($cart[$product->id][$type]);
@@ -111,8 +136,44 @@ class CartController extends Controller
             }
         }
 
-        Session::put('cart', $cart);
+        $request->session()->put('cart', $cart);
 
         return redirect()->route('cart.index')->with('success', 'Product verwijderd.');
+    }
+
+    // Nieuwe methode voor de checkout pagina
+    public function checkout(Request $request)
+    {
+        $cart = $request->session()->get('cart', []);
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Je winkelwagen is leeg.');
+        }
+
+        $productIds = array_keys($cart);
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        $cartWithProducts = [];
+
+        foreach ($cart as $productId => $types) {
+            if (!isset($products[$productId])) {
+                continue;
+            }
+
+            foreach ($types as $type => $data) {
+                $cartWithProducts[$productId][$type] = [
+                    'quantity' => $data['quantity'],
+                    'product' => $products[$productId],
+                ];
+            }
+        }
+
+        $typesInCart = collect($cart)->flatMap(fn($types) => array_keys($types))->unique();
+
+        $deliveryMethod = $typesInCart->count() === 1 ? $typesInCart->first() : 'afhalen';
+
+        return view('checkout.index', [
+            'cart' => $cartWithProducts,
+            'deliveryMethod' => $deliveryMethod,
+        ]);
     }
 }

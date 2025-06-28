@@ -24,7 +24,7 @@ Route::prefix('cart')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('cart.index');
     Route::post('/add/{product}', [CartController::class, 'add'])->name('cart.add');
     Route::patch('/update/{product}', [CartController::class, 'update'])->name('cart.update');
-    Route::post('/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::delete('/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
 });
 
 // Checkout

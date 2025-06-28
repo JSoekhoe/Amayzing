@@ -1,98 +1,144 @@
 <x-app-layout>
     <x-slot name="header">
-        <h1 class="text-2xl font-bold text-gray-800">Winkelwagen</h1>
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8">Je winkelwagen</h1>
     </x-slot>
 
-    <div class="max-w-5xl mx-auto p-6">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Flash messages --}}
         @if(session('success'))
-            <div class="bg-green-100 text-green-800 p-4 rounded mb-4">
+            <div class="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-md mb-6" role="alert" aria-live="polite">
                 {{ session('success') }}
             </div>
         @endif
-
         @if(session('error'))
-            <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
+            <div class="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-md mb-6" role="alert" aria-live="assertive">
                 {{ session('error') }}
             </div>
         @endif
 
-        {{-- Controleer of winkelwagen leeg is --}}
         @if(empty($cart))
-            <p class="text-gray-600">Je winkelwagen is leeg.</p>
-            <a href="{{ route('products.index') }}" class="text-blue-600 underline mt-2 inline-block">
-                Ga terug naar producten
-            </a>
+            <div class="text-center py-20 text-gray-500">
+                <p class="text-xl mb-4">Je winkelwagen is leeg.</p>
+                <a href="{{ route('products.index') }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded shadow transition">
+                    Ga terug naar producten
+                </a>
+            </div>
         @else
-            @php
-                $total = 0;
-                $deliveryFee = 0;
-            @endphp
+            @php $total = 0; @endphp
 
-            @foreach($cart as $productId => $types)
-                @php
-                    $product = $types[array_key_first($types)]['product']; // Als je product object meestuurt in de sessie, anders Product::find($productId)
-                @endphp
-
-                @foreach($types as $type => $data)
+            <div class="space-y-8">
+                @foreach($cart as $productId => $types)
                     @php
-                        $quantity = $data['quantity'];
-                        $price = $product->price;
-                        $subtotal = $price * $quantity;
-                        $total += $subtotal;
-                        $maxStock = ($type === 'afhalen') ? $product->pickup_stock : $product->delivery_stock;
+                        $product = $types[array_key_first($types)]['product'];
                     @endphp
 
-                    <div class="border p-4 mb-4 rounded shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center">
-                        <div class="mb-3 md:mb-0 w-full md:w-3/4">
-                            <strong class="block text-lg text-gray-800">{{ $product->name }} ({{ ucfirst($type) }})</strong>
-                            <span class="text-gray-600">Prijs per stuk: €{{ number_format($price, 2, ',', '.') }}</span>
+                    @foreach($types as $type => $data)
+                        @php
+                            $quantity = $data['quantity'];
+                            $price = $product->price;
+                            $subtotal = $price * $quantity;
+                            $total += $subtotal;
+                            $maxStock = ($type === 'afhalen') ? $product->pickup_stock : $product->delivery_stock;
+                        @endphp
 
-                            <form action="{{ route('cart.update', $product) }}" method="POST" class="mt-2 flex items-center flex-wrap gap-2">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="type" value="{{ $type }}">
-                                <label for="quantity_{{ $product->id }}_{{ $type }}" class="text-sm text-gray-700">Aantal:</label>
-                                <input type="number"
-                                       name="quantity"
-                                       id="quantity_{{ $product->id }}_{{ $type }}"
-                                       value="{{ $quantity }}"
-                                       min="1"
-                                       max="{{ $maxStock }}"
-                                       class="border p-1 w-20 text-center rounded shadow-sm">
-                                <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                                    Update
-                                </button>
-                            </form>
+                        <div class="flex flex-col sm:flex-row sm:items-center bg-white rounded-lg shadow-md p-6 gap-6">
+                            {{-- Productafbeelding --}}
+                            <div class="w-full sm:w-32 flex-shrink-0">
+                                <img src="{{ $product->image_url ?? '/images/default-product.jpg' }}" alt="{{ $product->name }}" class="rounded-lg object-cover w-full h-32 sm:h-24" />
+                            </div>
 
-                            <p class="mt-2 text-sm text-gray-700">Subtotaal: €{{ number_format($subtotal, 2, ',', '.') }}</p>
+                            {{-- Product info --}}
+                            <div class="flex-1">
+                                <h2 class="text-xl font-semibold text-gray-900">{{ $product->name }} <span class="text-gray-500 text-sm">({{ ucfirst($type) }})</span></h2>
+                                <p class="mt-1 text-gray-600">Prijs per stuk: <span class="font-medium">€{{ number_format($price, 2, ',', '.') }}</span></p>
+
+                                <form action="{{ route('cart.update', $product) }}" method="POST" id="form_{{ $product->id }}_{{ $type }}" class="mt-4 flex items-center space-x-3 max-w-xs">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="type" value="{{ $type }}">
+
+                                    <label for="quantity_{{ $product->id }}_{{ $type }}" class="sr-only">Aantal</label>
+                                    <input
+                                        type="number"
+                                        id="quantity_{{ $product->id }}_{{ $type }}"
+                                        name="quantity"
+                                        min="1"
+                                        max="{{ $maxStock }}"
+                                        value="{{ $quantity }}"
+                                        required
+                                        onchange="document.getElementById('form_{{ $product->id }}_{{ $type }}').submit()"
+                                        class="border border-gray-300 rounded-md text-center w-20 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        aria-label="Aantal {{ $product->name }} ({{ ucfirst($type) }})"
+                                    >
+
+                                    <div class="flex flex-col space-y-1">
+                                        <button type="button"
+                                                onclick="changeQty('quantity_{{ $product->id }}_{{ $type }}', {{ $maxStock }}, 'form_{{ $product->id }}_{{ $type }}', 1)"
+                                                class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-1 text-lg select-none"
+                                                aria-label="Verhoog aantal">+</button>
+
+                                        <button type="button"
+                                                onclick="changeQty('quantity_{{ $product->id }}_{{ $type }}', {{ $maxStock }}, 'form_{{ $product->id }}_{{ $type }}', -1)"
+                                                class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-1 text-lg select-none"
+                                                aria-label="Verlaag aantal">&minus;</button>
+                                    </div>
+                                </form>
+
+                                <p class="mt-3 text-gray-700 font-semibold">Subtotaal: €{{ number_format($subtotal, 2, ',', '.') }}</p>
+                            </div>
+
+                            {{-- Verwijder knop --}}
+                            <div class="mt-4 sm:mt-0 sm:ml-6 flex-shrink-0">
+                                <form action="{{ route('cart.remove', $product) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="hidden" name="type" value="{{ $type }}">
+                                    <button type="submit" class="text-red-600 hover:underline font-semibold" aria-label="Verwijder {{ $product->name }} ({{ ucfirst($type) }})">
+                                        Verwijder
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-
-                        <form action="{{ route('cart.remove', $product) }}" method="POST" class="mt-2 md:mt-0">
-                            @csrf
-                            @method('DELETE')
-                            <input type="hidden" name="type" value="{{ $type }}">
-                            <button type="submit" class="text-red-600 hover:underline text-sm">Verwijder</button>
-                        </form>
-                    </div>
+                    @endforeach
                 @endforeach
-            @endforeach
+            </div>
 
+            {{-- Totaal en afrekenen --}}
             @php
                 $deliveryFee = ($total < 99) ? 5.50 : 0;
                 $grandTotal = $total + $deliveryFee;
             @endphp
 
-            <div class="bg-gray-50 p-4 mt-6 rounded shadow text-right space-y-1 text-gray-800">
-                <p><strong>Totaal producten:</strong> €{{ number_format($total, 2, ',', '.') }}</p>
-                <p><strong>Bezorgkosten:</strong> €{{ number_format($deliveryFee, 2, ',', '.') }}</p>
-                <p class="text-xl"><strong>Totaal te betalen:</strong> €{{ number_format($grandTotal, 2, ',', '.') }}</p>
-            </div>
+            <div class="mt-12 max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg text-center">
+                <p class="text-gray-700 text-lg mb-2"><strong>Producttotaal:</strong> €{{ number_format($total, 2, ',', '.') }}</p>
+                <p class="text-gray-700 text-lg mb-4"><strong>Bezorgkosten:</strong> €{{ number_format($deliveryFee, 2, ',', '.') }}</p>
+                <p class="text-2xl font-extrabold mb-6">Totaal te betalen: €{{ number_format($grandTotal, 2, ',', '.') }}</p>
 
-            <a href="{{ route('checkout.index') }}"
-               class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 mt-6 inline-block text-center">
-                Doorgaan naar afrekenen
-            </a>
+                <form action="{{ route('checkout.index') }}" method="GET">
+                    <input type="hidden" name="type" value="{{ $deliveryMethod }}">
+                    <button type="submit"
+                            class="inline-block w-auto px-8 py-3 bg-gray-600 hover:bg-gray-700 focus:bg-gray-700 text-white font-bold rounded-lg shadow-md focus:outline-none focus:ring-4 focus:ring-gray-400 transition"
+                    >
+                        Verder naar afrekenen
+                    </button>
+                </form>
+            </div>
         @endif
     </div>
+
+    <script>
+        function changeQty(inputId, max, formId, delta) {
+            const input = document.getElementById(inputId);
+            let currentValue = parseInt(input.value) || 1;
+            let newValue = currentValue + delta;
+
+            if (newValue < 1) newValue = 1;
+            if (newValue > max) newValue = max;
+
+            if (newValue !== currentValue) {
+                input.value = newValue;
+                document.getElementById(formId).submit();
+            }
+        }
+    </script>
 </x-app-layout>

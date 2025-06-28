@@ -1,45 +1,56 @@
 <?php
-
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
-
-
 use App\Models\Product;
+use App\Services\DeliveryCheckerService;
+use Illuminate\Support\Facades\Config;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, DeliveryCheckerService $deliveryChecker)
     {
         $products = Product::paginate(9);
-        $hasProducts = $products->count() > 0;
 
         $selectedDeliveryMethod = $request->input('delivery_method', 'afhalen');
         $postcode = $request->input('postcode');
+        $housenumber = $request->input('housenumber');
 
-        $deliveryAllowed = false;
+        $deliveryAllowed = null;
         $deliveryMessage = '';
+        $addressResolved = null;
+
+        $pickupAddress = Config::get('delivery.pickup.address');
+        $pickupHours = Config::get('delivery.pickup.opening_hours');
+        $pickupMessage = Config::get('delivery.pickup.message');
 
         if ($selectedDeliveryMethod === 'bezorgen') {
-            if ($postcode) {
-                // Check bezorgbaarheid voor alle producten
-                $deliveryAllowed = DeliveryService::checkDelivery($postcode, $products->pluck('id')->toArray());
+            if ($postcode && $housenumber) {
+                $deliveryCheckResult = $deliveryChecker->check($postcode, $housenumber);
 
-                if (!$deliveryAllowed) {
-                    $deliveryMessage = 'Bezorgen is niet mogelijk op deze postcode. Teruggezet naar ophalen.';
-                    $selectedDeliveryMethod = 'afhalen';
-                }
+                $deliveryAllowed = $deliveryCheckResult->allowed;
+                $deliveryMessage = $deliveryCheckResult->message;
+                $addressResolved = $deliveryCheckResult->address;
             } else {
-                $deliveryMessage = 'Voer een postcode in om bezorging te kunnen controleren.';
                 $deliveryAllowed = false;
+                $deliveryMessage = 'Voer een postcode en huisnummer in om bezorging te kunnen controleren.';
             }
         }
 
+        $cities = Config::get('delivery.cities', []);
+
         return view('products.index', compact(
-            'products', 'hasProducts', 'selectedDeliveryMethod', 'postcode', 'deliveryAllowed', 'deliveryMessage'
+            'products',
+            'selectedDeliveryMethod',
+            'postcode',
+            'housenumber',
+            'deliveryAllowed',
+            'deliveryMessage',
+            'addressResolved',
+            'cities',
+            'pickupAddress',
+            'pickupHours',
+            'pickupMessage',
         ));
     }
-
-
-
-
 }

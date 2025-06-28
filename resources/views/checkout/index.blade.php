@@ -1,132 +1,132 @@
 <x-app-layout>
     <x-slot name="header">
-        <h1 class="text-2xl font-bold text-gray-800">Bestelling afronden</h1>
+        <h1 class="text-3xl font-serif font-bold text-gray-800 mb-6">Afrekenen</h1>
     </x-slot>
 
-    <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow">
-        {{-- Flash messages --}}
-        @if(session('error'))
-            <div class="bg-red-100 text-red-700 p-2 rounded mb-4">{{ session('error') }}</div>
+    <div class="max-w-3xl mx-auto p-8 bg-gray-100 rounded-3xl shadow-lg border border-gray-300">
+        {{-- Foutmeldingen --}}
+        @if($errors->any())
+            <div class="mb-6 p-5 bg-gray-200 text-gray-800 rounded-xl shadow-inner">
+                <ul class="list-disc list-inside space-y-1 font-medium">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         @endif
 
-        @if($errors->has('stock'))
-            <div class="bg-red-100 text-red-700 p-2 rounded mb-4">
-                @foreach($errors->get('stock') as $stockError)
-                    <p>{{ $stockError }}</p>
+        {{-- Bestelling overzicht --}}
+        <div class="mb-8 bg-white p-6 rounded-xl shadow-md border border-gray-300">
+            <h2 class="text-2xl font-serif font-semibold text-gray-700 mb-4">Bestelling overzicht</h2>
+            @foreach($cart as $productId => $types)
+                @foreach($types as $type => $data)
+                    @php
+                        $product = \App\Models\Product::find($productId);
+                        $quantity = $data['quantity'];
+                        $subtotal = $product->price * $quantity;
+                    @endphp
+                    <p class="text-gray-800 font-semibold mb-1">{{ $product->name }} <span class="text-sm lowercase font-normal">({{ ucfirst($type) }})</span> × {{ $quantity }} — <span class="font-normal">€{{ number_format($subtotal, 2, ',', '.') }}</span></p>
                 @endforeach
-            </div>
-        @endif
+            @endforeach
 
-        <form action="{{ route('checkout.store') }}" method="POST">
+            <p class="mt-4 font-semibold text-gray-700">Bezorgkosten: <span class="font-normal">€{{ number_format($deliveryFee, 2, ',', '.') }}</span></p>
+            <p class="text-xl font-serif font-bold mt-1 text-gray-800">Totaal te betalen: <span class="font-normal">€{{ number_format($grandTotal, 2, ',', '.') }}</span></p>
+        </div>
+
+        <form action="{{ route('checkout.store') }}" method="POST" class="space-y-8 bg-white p-8 rounded-xl shadow-md border border-gray-300">
             @csrf
+            <input type="hidden" name="type" value="{{ $deliveryMethod }}">
 
-            <div class="mb-4">
-                <label for="type" class="block font-semibold mb-1">Bezorging of afhalen?</label>
-                <select name="type" id="type" required onchange="toggleFields()" class="w-full border p-2 rounded">
-                    <option value="">Kies een optie</option>
-                    <option value="bezorgen" {{ old('type') == 'bezorgen' ? 'selected' : '' }}>Bezorgen</option>
-                    <option value="afhalen" {{ old('type') == 'afhalen' ? 'selected' : '' }}>Afhalen</option>
-                </select>
-                <p class="text-gray-600 text-sm mt-2">
-                    Bezorgkosten: €5,50 bij bestellingen onder €99. Bij afhalen zijn geen bezorgkosten.
-                </p>
-                @error('type') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
+            <div>
+                <label for="name" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Naam</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ old('name') }}"
+                    required
+                    placeholder="Jouw naam"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
+                >
             </div>
 
-            <div class="mb-4">
-                <label for="name" class="block font-semibold mb-1">Naam</label>
-                <input type="text" name="name" value="{{ old('name') }}" required class="w-full border p-2 rounded">
-                @error('name') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
+            <div>
+                <label for="email" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">E-mail</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{ old('email') }}"
+                    required
+                    placeholder="email@voorbeeld.nl"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
+                >
             </div>
 
-            <div class="mb-4">
-                <label for="email" class="block font-semibold mb-1">E-mailadres</label>
-                <input type="email" name="email" value="{{ old('email') }}" required class="w-full border p-2 rounded">
-                @error('email') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
+            <div>
+                <label for="phone" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Telefoonnummer</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value="{{ old('phone') }}"
+                    required
+                    placeholder="+31 6 12345678"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
+                >
             </div>
 
-            <div class="mb-4">
-                <label for="phone" class="block font-semibold mb-1">Telefoonnummer</label>
-                <input type="text" name="phone" value="{{ old('phone') }}" required class="w-full border p-2 rounded">
-                @error('phone') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-            </div>
+            @if($deliveryMethod === 'bezorgen')
+                <div>
+                    <label for="address" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Bezorgadres</label>
+                    <input
+                        type="text"
+                        id="address"
+                        name="address"
+                        value="{{ old('address') }}"
+                        required
+                        placeholder="Straatnaam 123"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
+                    >
+                </div>
 
-            <div id="bezorgen_fields" class="mb-4 hidden">
-                <label for="address" class="block font-semibold mb-1">Adres</label>
-                <input type="text" name="address" value="{{ old('address') }}" class="w-full border p-2 rounded" @if(old('type') === 'bezorgen') required @endif>
-                @error('address') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
+                <div>
+                    <label for="postcode" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Postcode</label>
+                    <input
+                        type="text"
+                        id="postcode"
+                        name="postcode"
+                        value="{{ old('postcode') }}"
+                        required
+                        placeholder="1234 AB"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
+                    >
+                </div>
+            @endif
 
-                <label for="postcode" class="block font-semibold mt-4 mb-1">Postcode</label>
-                <input type="text" name="postcode" value="{{ old('postcode') }}" class="w-full border p-2 rounded" @if(old('type') === 'bezorgen') required @endif>
-                @error('postcode') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-            </div>
+            @if($deliveryMethod === 'afhalen')
+                <div>
+                    <label for="pickup_time" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaaltijd</label>
+                    <input
+                        type="time"
+                        id="pickup_time"
+                        name="pickup_time"
+                        value="{{ old('pickup_time') }}"
+                        required
+                        min="{{ $minPickupTime }}"
+                        max="21:00"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
+                    >
+                    <small class="text-gray-500 italic">Afhalen kan vanaf {{ $minPickupTime }} tot 21:00 uur</small>
+                </div>
+            @endif
 
-            <div id="afhalen_fields" class="mb-4 hidden">
-                <label for="pickup_time" class="block font-semibold mb-1">Verwachte afhaaltijd</label>
-                <input type="time" name="pickup_time" value="{{ old('pickup_time') }}" class="w-full border p-2 rounded" disabled>
-                @error('pickup_time') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-            </div>
-
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            <button
+                type="submit"
+                class="w-full bg-gray-700 hover:bg-gray-800 text-white font-serif font-semibold py-3 rounded-2xl shadow-lg transition"
+            >
                 Bestelling plaatsen
             </button>
         </form>
     </div>
-
-    <script>
-        function toggleFields() {
-            const type = document.getElementById('type').value;
-            const bezorgenFields = document.getElementById('bezorgen_fields');
-            const afhalenFields = document.getElementById('afhalen_fields');
-            const pickupInput = afhalenFields.querySelector('input[name="pickup_time"]');
-            const adresInput = bezorgenFields.querySelector('input[name="address"]');
-            const postcodeInput = bezorgenFields.querySelector('input[name="postcode"]');
-
-            if(type === 'bezorgen') {
-                bezorgenFields.classList.remove('hidden');
-                afhalenFields.classList.add('hidden');
-
-                pickupInput.disabled = true;
-                pickupInput.required = false;
-                pickupInput.value = '';
-
-                adresInput.required = true;
-                postcodeInput.required = true;
-            } else if(type === 'afhalen') {
-                bezorgenFields.classList.add('hidden');
-                afhalenFields.classList.remove('hidden');
-
-                pickupInput.disabled = false;
-                pickupInput.required = true;
-
-                adresInput.required = false;
-                postcodeInput.required = false;
-                adresInput.value = '';
-                postcodeInput.value = '';
-
-                // Dynamische min/max tijden volgens backend regels
-                const day = new Date().toLocaleDateString('nl-NL', { weekday: 'long' }).toLowerCase();
-                let minTime = '14:00';
-                if(day === 'zaterdag' || day === 'zondag') {
-                    minTime = '11:00';
-                }
-                pickupInput.min = minTime;
-                pickupInput.max = '21:30';
-            } else {
-                bezorgenFields.classList.add('hidden');
-                afhalenFields.classList.add('hidden');
-
-                pickupInput.disabled = true;
-                pickupInput.required = false;
-                pickupInput.value = '';
-
-                adresInput.required = false;
-                postcodeInput.required = false;
-                adresInput.value = '';
-                postcodeInput.value = '';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', toggleFields);
-    </script>
 </x-app-layout>
