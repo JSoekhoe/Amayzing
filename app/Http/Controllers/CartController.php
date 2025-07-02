@@ -4,176 +4,117 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-use Illuminate\Support\Facades\Session;
-use App\Services\DeliveryCheckerService;
 
 class CartController extends Controller
 {
+    // Toon de winkelwagen
     public function index(Request $request)
     {
-        $cart = $request->session()->get('cart', []);
-        $productIds = array_keys($cart);
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        // Haal de cart uit de sessie, of lege array als niet aanwezig
+        $cart = session('cart', []);
 
-        $cartWithProducts = [];
+        // Dit kan eventueel aangepast worden afhankelijk van jouw logica
+        $deliveryMethod = $request->input('type', 'delivery');
 
-        foreach ($cart as $productId => $types) {
-            if (!isset($products[$productId])) {
-                continue;
-            }
-
-            foreach ($types as $type => $data) {
-                $cartWithProducts[$productId][$type] = [
-                    'quantity' => $data['quantity'],
-                    'product' => $products[$productId],
-                ];
-            }
-        }
-
-        $typesInCart = collect($cart)->flatMap(fn($types) => array_keys($types))->unique();
-
-        $deliveryMethod = $typesInCart->count() === 1 ? $typesInCart->first() : 'afhalen';
-
-        return view('cart.index', [
-            'cart' => $cartWithProducts,
-            'deliveryMethod' => $deliveryMethod,
-        ]);
+        return view('cart.index', compact('cart', 'deliveryMethod'));
     }
 
+    // Voeg een product toe aan de cart
     public function add(Request $request, Product $product)
     {
         $request->validate([
-            'type' => 'required|in:afhalen,bezorgen',
             'quantity' => 'required|integer|min:1',
+            'type' => 'required|string|in:afhalen,bezorgen',
         ]);
 
+        $quantity = $request->input('quantity');
         $type = $request->input('type');
-        $quantity = (int) $request->input('quantity');
-        $postcode = $request->input('postcode');
-        $housenumber = $request->input('housenumber');
 
-        $cart = $request->session()->get('cart', []);
-        $existingTypes = collect($cart)->flatMap(fn($types) => array_keys($types))->unique();
+        $cart = session('cart', []);
 
-        if ($existingTypes->isNotEmpty() && !$existingTypes->contains($type)) {
-            return redirect()->route('cart.index')->with('error', 'Je kunt niet afhalen en bezorgen combineren in één bestelling.');
+        if (!isset($cart[$product->id])) {
+            $cart[$product->id] = [];
         }
 
-        $availableStock = $type === 'afhalen' ? $product->pickup_stock : $product->delivery_stock;
-        $currentQty = $cart[$product->id][$type]['quantity'] ?? 0;
+        $maxStock = ($type === 'afhalen') ? $product->pickup_stock : $product->delivery_stock;
 
-        if ($currentQty + $quantity > $availableStock) {
-            return redirect()->route('cart.index')->with('error', 'Je kunt niet meer toevoegen dan de beschikbare voorraad.');
+        if ($quantity > $maxStock) {
+            return redirect()->back()->with('error', 'Het gevraagde aantal overschrijdt de beschikbare voorraad.');
         }
 
-        if ($type === 'bezorgen') {
-            if (!$postcode || !$housenumber) {
-                return redirect()->route('cart.index')->with('error', 'Postcode en huisnummer zijn verplicht voor bezorgen.');
+        // Als product met dit type al in cart zit, tel het aantal erbij op
+        if (isset($cart[$product->id][$type])) {
+            $newQuantity = $cart[$product->id][$type]['quantity'] + $quantity;
+            if ($newQuantity > $maxStock) {
+                return redirect()->back()->with('error', 'Het totale aantal overschrijdt de beschikbare voorraad.');
             }
-
-            $deliveryChecker = app(DeliveryCheckerService::class);
-            $checkResult = $deliveryChecker->check($postcode, $housenumber);
-
-            if (!$checkResult->allowed) {
-                return redirect()->route('cart.index')->with('error', 'Bezorging is niet mogelijk op dit adres: ' . strip_tags($checkResult->message));
-            }
-        }
-
-        $cart[$product->id][$type] = [
-            'quantity' => $currentQty + $quantity,
-        ];
-
-        $request->session()->put('cart', $cart);
-
-        return redirect()->route('cart.index')->with('success', 'Product toegevoegd!');
-    }
-
-    public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'type' => 'required|in:afhalen,bezorgen',
-            'quantity' => 'required|integer|min:0',
-        ]);
-
-        $type = $request->input('type');
-        $quantity = (int) $request->input('quantity');
-        $cart = $request->session()->get('cart', []);
-
-        $availableStock = $type === 'afhalen' ? $product->pickup_stock : $product->delivery_stock;
-
-        if ($quantity <= 0) {
-            unset($cart[$product->id][$type]);
-            if (empty($cart[$product->id])) {
-                unset($cart[$product->id]);
-            }
+            $cart[$product->id][$type]['quantity'] = $newQuantity;
         } else {
-            if ($quantity > $availableStock) {
-                return redirect()->back()->with('error', "Maximale voorraad voor {$product->name} ({$type}) is {$availableStock}");
-            }
             $cart[$product->id][$type] = [
                 'quantity' => $quantity,
+                'product' => $product,
             ];
         }
 
-        $request->session()->put('cart', $cart);
+        session(['cart' => $cart]);
 
-        return redirect()->route('cart.index')->with('success', "Aantal van {$product->name} ({$type}) is bijgewerkt.");
+        return redirect()->back()->with('success', 'Product toegevoegd aan winkelwagen.');
     }
 
+    // Update het aantal van een product in de cart
+    public function update(Request $request, Product $product)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'type' => 'required|string|in:afhalen,bezorgen', // afhalen of bezorgen
+        ]);
+
+        $quantity = $request->input('quantity');
+        $type = $request->input('type');
+
+        $cart = session('cart', []);
+
+        if (!isset($cart[$product->id])) {
+            $cart[$product->id] = [];
+        }
+
+        $maxStock = ($type === 'afhalen') ? $product->pickup_stock : $product->delivery_stock;
+
+        if ($quantity > $maxStock) {
+            return redirect()->back()->with('error', 'Het gevraagde aantal overschrijdt de beschikbare voorraad.');
+        }
+
+        $cart[$product->id][$type] = [
+            'quantity' => $quantity,
+            'product' => $product,
+        ];
+
+        session(['cart' => $cart]);
+
+        return redirect()->back()->with('success', 'Aantal bijgewerkt.');
+    }
+
+    // Verwijder product uit cart
     public function remove(Request $request, Product $product)
     {
         $request->validate([
-            'type' => 'required|in:afhalen,bezorgen',
+            'type' => 'required|string|in:afhalen,bezorgen',
         ]);
 
         $type = $request->input('type');
-        $cart = $request->session()->get('cart', []);
+
+        $cart = session('cart', []);
 
         if (isset($cart[$product->id][$type])) {
             unset($cart[$product->id][$type]);
+
             if (empty($cart[$product->id])) {
                 unset($cart[$product->id]);
             }
         }
 
-        $request->session()->put('cart', $cart);
+        session(['cart' => $cart]);
 
-        return redirect()->route('cart.index')->with('success', 'Product verwijderd.');
-    }
-
-    // Nieuwe methode voor de checkout pagina
-    public function checkout(Request $request)
-    {
-        $cart = $request->session()->get('cart', []);
-        if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Je winkelwagen is leeg.');
-        }
-
-        $productIds = array_keys($cart);
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
-        $cartWithProducts = [];
-
-        foreach ($cart as $productId => $types) {
-            if (!isset($products[$productId])) {
-                continue;
-            }
-
-            foreach ($types as $type => $data) {
-                $cartWithProducts[$productId][$type] = [
-                    'quantity' => $data['quantity'],
-                    'product' => $products[$productId],
-                ];
-            }
-        }
-
-        $typesInCart = collect($cart)->flatMap(fn($types) => array_keys($types))->unique();
-
-        $deliveryMethod = $typesInCart->count() === 1 ? $typesInCart->first() : 'afhalen';
-
-        return view('checkout.index', [
-            'cart' => $cartWithProducts,
-            'deliveryMethod' => $deliveryMethod,
-        ]);
+        return redirect()->back()->with('success', 'Product verwijderd uit winkelwagen.');
     }
 }

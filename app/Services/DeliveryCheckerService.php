@@ -7,7 +7,7 @@ use App\Services\GoogleGeocodingService;
 
 class DeliveryCheckerService
 {
-    public function check(?string $postcode, ?string $housenumber)
+    public function check(?string $postcode, ?string $housenumber, ?string $addition = null)
     {
         $result = (object)[
             'allowed' => false,
@@ -21,7 +21,10 @@ class DeliveryCheckerService
             return $result;
         }
 
-        $fullAddress = "{$housenumber} {$postcode}, Nederland";
+        // Voeg toevoeging toe indien aanwezig
+        $addressAddition = $addition ? ' ' . trim($addition) : '';
+
+        $fullAddress = "{$housenumber}{$addressAddition} {$postcode}, Nederland";
         $geocode = GoogleGeocodingService::geocode($fullAddress);
 
         if (
@@ -69,9 +72,24 @@ class DeliveryCheckerService
             return $result;
         }
 
+        // Haal straatnaam uit address_components van $geocode
+        $street = null;
+        if (isset($geocode['address_components'])) {
+            foreach ($geocode['address_components'] as $component) {
+                if (in_array('route', $component['types'])) {
+                    $street = $component['long_name'];
+                    break;
+                }
+            }
+        }
+
+        if (!$street) {
+            $street = ''; // fallback als straatnaam niet gevonden is
+        }
+
         $result->allowed = true;
         $result->message = 'Bezorging is beschikbaar op dit adres.';
-        $result->address = "{$geocode['street']} {$housenumber}, {$postcode}";
+        $result->address = "{$street} {$housenumber}, {$postcode}";
 
         return $result;
     }

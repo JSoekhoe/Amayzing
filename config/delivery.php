@@ -1,4 +1,5 @@
 <?php
+
 return [
     'cities' => [
         'arnhem' => [
@@ -6,8 +7,8 @@ return [
             'delivery_day' => 'wednesday',
             'delivery_time' => 'vanaf 14:00 uur',
         ],
-        'groningen' => [
-            'center' => ['lat' => 53.2194, 'lng' => 6.5665],
+        'breda' => [
+            'center' => ['lat' => 51.5719, 'lng' => 4.7683],
             'delivery_day' => 'thursday',
             'delivery_time' => 'vanaf 14:00 uur',
         ],
@@ -16,8 +17,8 @@ return [
             'delivery_day' => 'friday',
             'delivery_time' => 'vanaf 14:00 uur',
         ],
-        'breda' => [
-            'center' => ['lat' => 51.5719, 'lng' => 4.7683],
+        'denhaag' => [
+            'center' => ['lat' => 52.0705, 'lng' => 4.3007], // coördinaten Den Haag
             'delivery_day' => 'saturday',
             'delivery_time' => 'vanaf 11:00 uur',
         ],
