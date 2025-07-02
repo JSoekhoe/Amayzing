@@ -8,27 +8,27 @@
     <section class="py-10 max-w-7xl mx-auto sm:px-6 lg:px-8">
 
         {{-- Afhalen / Bezorgen toggle --}}
-        <form method="GET" action="{{ route('products.index') }}" class="flex justify-center space-x-10 border-b-4 border-gray-300 pb-4 mb-4">
+        <form method="GET" action="{{ route('products.index') }}" class="flex justify-center space-x-10 border-b-4 border-gray-400 pb-4 mb-6">
             <button type="submit" name="delivery_method" value="afhalen"
                     class="font-serif text-xl px-8 py-3 rounded-3xl border-b-4 transition
                     {{ ($deliveryMethod === 'afhalen' || !$deliveryMethod)
-                        ? 'border-gray-700 text-gray-800 font-bold'
-                        : 'border-transparent text-gray-400 hover:text-gray-600' }}">
+                        ? 'border-gray-900 text-gray-900 font-bold'
+                        : 'border-transparent text-gray-500 hover:text-gray-700' }}">
                 Afhalen
             </button>
 
             <button type="submit" name="delivery_method" value="bezorgen"
                     class="font-serif text-xl px-8 py-3 rounded-3xl border-b-4 transition
                     {{ ($deliveryMethod === 'bezorgen')
-                        ? 'border-gray-700 text-gray-800 font-bold'
-                        : 'border-transparent text-gray-400 hover:text-gray-600' }}">
+                        ? 'border-gray-900 text-gray-900 font-bold'
+                        : 'border-transparent text-gray-500 hover:text-gray-700' }}">
                 Bezorgen
             </button>
         </form>
 
         {{-- Afhaalinformatie --}}
         @if ($deliveryMethod === 'afhalen' || !$deliveryMethod)
-            <div class="max-w-6xl mx-auto mb-6 bg-white rounded-3xl shadow-md p-6 text-gray-700">
+            <div class="max-w-6xl mx-auto mb-6 bg-gray-100 rounded-3xl shadow-sm p-6 text-gray-900">
                 <h3 class="font-serif text-xl font-semibold mb-4">Afhaalinformatie</h3>
 
                 <p class="mb-4">{{ $pickupMessage }}</p>
@@ -37,31 +37,29 @@
                     @foreach ($pickupLocations as $location)
                         <li>
                             <h4 class="font-semibold text-lg">{{ $location['name'] }}</h4>
-                            <p class="mb-2 whitespace-pre-line">{!! $location['days'] !!}</p>
-
+                            <p class="mb-2 whitespace-pre-line text-gray-800">{!! $location['days'] !!}</p>
                         </li>
                     @endforeach
                 </ul>
             </div>
         @endif
 
-
         {{-- Bezorginformatie en postcodecheck --}}
         @if ($deliveryMethod === 'bezorgen')
-            <div class="flex max-w-6xl mx-auto space-x-10 mb-6">
+            <div class="flex max-w-6xl mx-auto space-x-6 mb-6">
 
-                {{-- Linker kader: Bezorginformatie (breder) --}}
-                <aside class="w-2/3 bg-white rounded-3xl shadow-md p-6 text-gray-700">
+                {{-- Linker kader: Bezorginformatie --}}
+                <aside class="w-2/3 bg-gray-100 rounded-3xl shadow-sm p-6 text-gray-900">
                     <h3 class="font-serif text-xl font-semibold mb-4">Bezorginformatie</h3>
 
                     <p class="mb-3"><strong>Bezorgdagen en steden:</strong></p>
-                    <ul class="mb-4">
+                    <ul class="mb-4 text-gray-800">
                         @foreach ($cities as $cityName => $cityInfo)
                             <li>{{ ucfirst($cityName) }}: {{ $cityInfo['delivery_day'] }} - {{ $cityInfo['delivery_time'] }}</li>
                         @endforeach
                     </ul>
 
-                    <p class="mb-3">
+                    <p class="mb-3 text-gray-800">
                         We bezorgen binnen een straal van <strong>{{ $radiusKm }} km</strong> vanaf het centrum van elke stad.
                         Bestellen kan tot <strong>{{ $orderCutoff }}</strong> de avond voor de bezorging.
                         Bezorging vindt plaats vanaf <strong>{{ $deliveryStartWeekday }}</strong> op weekdagen, en vanaf <strong>{{ $deliveryStartWeekend }}</strong> in het weekend.
@@ -69,42 +67,42 @@
                     </p>
                 </aside>
 
-                {{-- Rechter kader: Postcode check formulier  --}}
-                <section class="w-1/3 bg-white rounded-3xl shadow-md p-4">
+                {{-- Rechter kader: Postcode check formulier --}}
+                <section class="w-1/3 bg-gray-100 rounded-3xl shadow-sm p-4 text-gray-900">
                     <form method="GET" action="{{ route('products.index') }}" class="space-y-4" novalidate>
                         <input type="hidden" name="delivery_method" value="bezorgen">
 
                         <div class="flex flex-col space-y-3">
                             <div>
-                                <label for="postcode" class="block mb-1 font-semibold text-gray-700">Postcode</label>
+                                <label for="postcode" class="block mb-1 font-semibold">Postcode</label>
                                 <input id="postcode" name="postcode" required
                                        value="{{ $postcode ?? '' }}"
                                        pattern="^[1-9][0-9]{3}\s?[a-zA-Z]{2}$"
                                        title="Voer een geldige Nederlandse postcode in (bijv. 1234 AB)"
-                                       class="w-full border border-gray-300 rounded-xl p-2 text-gray-900" />
+                                       class="w-full border border-gray-400 rounded-xl p-2" />
                             </div>
 
                             <div>
-                                <label for="housenumber" class="block mb-1 font-semibold text-gray-700">Huisnummer</label>
+                                <label for="housenumber" class="block mb-1 font-semibold">Huisnummer</label>
                                 <input id="housenumber" name="housenumber" required
                                        value="{{ $housenumber ?? '' }}"
                                        pattern="^[0-9]+$"
                                        title="Voer een geldig huisnummer in"
-                                       class="w-full border border-gray-300 rounded-xl p-2 text-gray-900" />
+                                       class="w-full border border-gray-400 rounded-xl p-2" />
                             </div>
 
                             <div>
-                                <label for="addition" class="block mb-1 font-semibold text-gray-700">Toevoeging (optioneel)</label>
+                                <label for="addition" class="block mb-1 font-semibold">Toevoeging (optioneel)</label>
                                 <input id="addition" name="addition"
                                        value="{{ $addition ?? '' }}"
                                        pattern="^[a-zA-Z0-9\s\-]*$"
                                        title="Voer een geldige toevoeging in (letters, cijfers, spaties, streepje)"
-                                       class="w-full border border-gray-300 rounded-xl p-2 text-gray-900" />
+                                       class="w-full border border-gray-400 rounded-xl p-2" />
                             </div>
                         </div>
 
                         <button type="submit"
-                                class="w-full bg-gray-300 hover:bg-gray-400 text-gray-900 font-semibold rounded-full py-2 shadow transition">
+                                class="w-full bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-full py-2 shadow">
                             Controleer postcode
                         </button>
                     </form>
@@ -140,13 +138,16 @@
                 @endphp
 
                 <article class="bg-white rounded-3xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition">
-                    <h3 class="font-serif text-2xl text-gray-800 mb-3">{{ $product->name }}</h3>
-                    <p class="text-gray-700 font-semibold mb-4 text-lg">€{{ number_format($product->price, 2, ',', '.') }}</p>
+                    <h3 class="font-serif text-2xl text-gray-900 mb-3">{{ $product->name }}</h3>
+                    <p class="text-gray-800 font-semibold mb-4 text-lg">€{{ number_format($product->price, 2, ',', '.') }}</p>
 
                     @if ($availableStock > 0)
                         <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-auto space-y-4">
                             @csrf
                             <input type="hidden" name="type" value="{{ $deliveryMethod }}">
+                            <input type="hidden" name="postcode" value="{{ $postcode ?? '' }}">
+                            <input type="hidden" name="housenumber" value="{{ $housenumber ?? '' }}">
+                            <input type="hidden" name="addition" value="{{ $addition ?? '' }}">
 
                             <label for="quantity_{{ $product->id }}" class="block text-gray-800 font-semibold mb-1">Aantal:</label>
                             <input type="number"
@@ -155,15 +156,16 @@
                                    value="1"
                                    min="1"
                                    max="{{ $availableStock }}"
-                                   class="w-full text-center p-3 border border-gray-300 rounded-xl font-semibold text-gray-800"
+                                   class="w-full text-center p-3 border border-gray-400 rounded-xl font-semibold text-gray-900"
                                    required
                             >
 
                             <button type="submit"
-                                    class="w-full bg-gray-300 hover:bg-gray-400 text-gray-900 font-semibold rounded-full py-3 shadow transition">
+                                    class="w-full bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-full py-3 shadow">
                                 In winkelwagen
                             </button>
                         </form>
+
                     @else
                         <p class="text-red-600 font-semibold mt-4 text-center">
                             Niet beschikbaar voor {{ $deliveryMethod === 'afhalen' ? 'afhalen' : 'bezorgen' }}.
@@ -171,7 +173,7 @@
                     @endif
                 </article>
             @empty
-                <p class="col-span-full text-center text-gray-400 italic text-lg">Geen producten gevonden.</p>
+                <p class="col-span-full text-center text-gray-500 italic text-lg">Geen producten gevonden.</p>
             @endforelse
         </div>
 

@@ -19,7 +19,12 @@
         @if(empty($cart))
             <div class="text-center py-20 text-gray-500">
                 <p class="text-xl mb-4">Je winkelwagen is leeg.</p>
-                <a href="{{ route('products.index') }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded shadow transition">
+                <a href="{{ route('products.index', [
+                    'postcode' => session('postcode'),
+                    'housenummer' => session('housenummer'),
+                    'toevoeging' => session('toevoeging'),
+                    'delivery_method' => session('delivery_method', 'afhalen'),
+                ]) }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded shadow transition">
                     Ga terug naar producten
                 </a>
             </div>
@@ -29,7 +34,9 @@
             <div class="space-y-8">
                 @foreach($cart as $productId => $types)
                     @php
-                        $product = $types[array_key_first($types)]['product'];
+                        // Pak het product model van het eerste type in deze groep
+                        $firstType = array_key_first($types);
+                        $product = $types[$firstType]['product'];
                     @endphp
 
                     @foreach($types as $type => $data)

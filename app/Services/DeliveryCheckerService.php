@@ -1,112 +1,151 @@
 <?php
+
 namespace App\Services;
 
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Config;
-use App\Services\GoogleGeocodingService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class DeliveryCheckerService
 {
-    public function check(?string $postcode, ?string $housenumber, ?string $addition = null)
+    /**
+     * Controleer bezorgmogelijkheid.
+     *
+     * @param string|null $postcode
+     * @param string|null $housenumber
+     * @param string|null $addition
+     * @param string $deliveryMethod ('afhalen' of 'bezorgen')
+     * @param string|null $pickupUrl
+     * @return object
+     */
+    public function check(?string $postcode, ?string $housenumber, ?string $addition = null, string $deliveryMethod = 'afhalen', ?string $pickupUrl = null)
     {
         $result = (object)[
             'allowed' => false,
             'message' => '',
+            'errors' => [],
             'address' => null,
-            'selectedDeliveryMethod' => 'afhalen'
+            'selectedDeliveryMethod' => $deliveryMethod,
+            'pickupUrl' => $pickupUrl,
         ];
 
-        if (!$postcode || !$housenumber) {
-            $result->message = 'Voer een postcode en huisnummer in om bezorging te kunnen controleren.';
+        // Als het om afhalen gaat, dan geen check, direct toegestaan
+        if ($deliveryMethod === 'afhalen') {
+            $result->allowed = true;
+            $result->message = 'Afhalen is beschikbaar.';
             return $result;
         }
 
-        // Voeg toevoeging toe indien aanwezig
-        $addressAddition = $addition ? ' ' . trim($addition) : '';
+        // 1. Validatie (alleen bij bezorgen)
+        $validator = Validator::make([
+            'postcode' => $postcode,
+            'housenumber' => $housenumber,
+            'addition' => $addition,
+        ], [
+            'postcode' => ['required', 'regex:/^[1-9][0-9]{3}\s?[a-zA-Z]{2}$/'],
+            'housenumber' => ['required', 'numeric', 'min:1'],
+            'addition' => ['nullable', 'string', 'regex:/^[a-zA-Z0-9\s\-]*$/'],
+        ], [
+            'postcode.required' => 'Postcode is verplicht.',
+            'postcode.regex' => 'Voer een geldige Nederlandse postcode in (bijv. 1234 AB).',
+            'housenumber.required' => 'Huisnummer is verplicht.',
+            'housenumber.numeric' => 'Huisnummer moet een getal zijn.',
+            'housenumber.min' => 'Huisnummer moet minimaal 1 zijn.',
+            'addition.regex' => 'Toevoeging mag alleen letters, cijfers, spaties en streepjes bevatten.',
+        ]);
 
-        $fullAddress = "{$housenumber}{$addressAddition} {$postcode}, Nederland";
-        $geocode = GoogleGeocodingService::geocode($fullAddress);
-
-        if (
-            !isset($geocode['geometry']['location']['lat']) ||
-            !isset($geocode['geometry']['location']['lng'])
-        ) {
-            $result->message = 'Locatiegegevens konden niet worden gevonden.';
+        if ($validator->fails()) {
+            $result->errors = $validator->errors()->all();
+            $result->message = implode('<br>', $result->errors);
             return $result;
         }
 
-        $lat = $geocode['geometry']['location']['lat'];
-        $lng = $geocode['geometry']['location']['lng'];
+        // 2. Normaliseer postcode en bouw adres
+        $postcode = strtoupper(str_replace(' ', '', $postcode));
+        $formattedPostcode = substr($postcode, 0, 4) . ' ' . substr($postcode, 4);
+        $fullAddress = "{$formattedPostcode} {$housenumber}" . ($addition ? " {$addition}" : "") . ", Nederland";
 
-        $cities = Config::get('delivery.cities', []);
-        $cityCenter = null;
+        // 3. Haal coördinaten op via Google Geocode
+        $geo = GoogleGeocodingService::geocode($fullAddress);
 
-        if (isset($cities['amsterdam'])) {
-            $cityCenter = [
-                'lat' => $cities['amsterdam']['center']['lat'],
-                'lng' => $cities['amsterdam']['center']['lng'],
-            ];
-        } else {
-            $firstCity = reset($cities);
-            $cityCenter = [
-                'lat' => $firstCity['center']['lat'],
-                'lng' => $firstCity['center']['lng'],
-            ];
-        }
-
-        $distance = $this->haversineDistance($lat, $lng, $cityCenter['lat'], $cityCenter['lng']);
-        $maxDistance = Config::get('delivery.max_distance_km', 10);
-
-        if ($distance > $maxDistance) {
-            $pickupUrl = route('products.index', ['delivery_method' => 'afhalen']);
-            $result->message = "Bezorging is alleen mogelijk binnen een straal van {$maxDistance} km vanaf het centrum.<br>"
-                . "Kies alstublieft voor <a href='{$pickupUrl}' class='underline text-blue-600'>afhalen</a> als alternatief.<br><br>";
+        if (!$geo || !isset($geo['geometry']['location']['lat'], $geo['geometry']['location']['lng'])) {
+            $result->message = 'Locatiegegevens konden niet worden gevonden. Controleer je adres.';
             return $result;
         }
 
+        $lat = $geo['geometry']['location']['lat'];
+        $lng = $geo['geometry']['location']['lng'];
+
+        // 4. Bepaal leverdatum (morgen)
+        Carbon::setLocale('nl');
         $now = Carbon::now();
-        $cutoff = Carbon::today()->setHour(22);
+        $orderForDay = $now->copy()->addDay();
 
-        if ($now->greaterThanOrEqualTo($cutoff)) {
-            $result->message = 'Bestellen voor morgen is alleen mogelijk tot 22:00 uur.';
-            return $result;
-        }
+        $orderWeekdayEn = strtolower($orderForDay->format('l'));
+        $orderWeekdayNl = ucfirst($orderForDay->translatedFormat('l'));
 
-        // Haal straatnaam uit address_components van $geocode
-        $street = null;
-        if (isset($geocode['address_components'])) {
-            foreach ($geocode['address_components'] as $component) {
-                if (in_array('route', $component['types'])) {
-                    $street = $component['long_name'];
-                    break;
-                }
+        // 5. Check afstand tot bezorggebieden
+        $cities = config('delivery.cities');
+        $maxDistance = config('delivery.max_distance_km', 10);
+
+        $withinCity = false;
+        $nearestCityName = null;
+        $nearestCityCenter = null;
+        $nearestDistance = INF;
+
+        foreach ($cities as $city => $info) {
+            if (strtolower($info['delivery_day']) !== $orderWeekdayEn) {
+                continue;
+            }
+
+            $distance = $this->haversineGreatCircleDistance($lat, $lng, $info['center']['lat'], $info['center']['lng']);
+            if ($distance < $nearestDistance) {
+                $nearestDistance = $distance;
+                $nearestCityName = $city;
+                $nearestCityCenter = $info;
+            }
+
+            if ($distance <= $maxDistance) {
+                $withinCity = true;
             }
         }
 
-        if (!$street) {
-            $street = ''; // fallback als straatnaam niet gevonden is
+        if (!$withinCity || !$nearestCityCenter) {
+            $result->message = 'Helaas, bezorging is niet beschikbaar op dit adres voor levering op ' . $orderWeekdayNl . '.<br>Kies voor <a href="' . ($pickupUrl ?? '#') . '" style="color: #2563eb; text-decoration: underline;">afhalen</a>.';
+            return $result;
         }
 
+//        // 6. Controleer besteltijd (deadline)
+//        $lastOrderDeadline = $orderForDay->copy()->subDay()->setTimeFromTimeString(config('delivery.last_order_time'));
+//        if ($now->gt($lastOrderDeadline)) {
+//        $result->message = "Bezorging voor <strong>morgen</strong> is niet meer mogelijk in " . ucfirst($nearestCityName) . "<br>Bestel vóór <strong>" . config('delivery.last_order_time') . "</strong> uur de avond.";
+//            return $result;
+//        }
+
+        // 7. Bezorging toegestaan
         $result->allowed = true;
-        $result->message = 'Bezorging is beschikbaar op dit adres.';
-        $result->address = "{$street} {$housenumber}, {$postcode}";
+        $result->selectedDeliveryMethod = 'bezorgen';
+        $result->message = "Bezorging mogelijk in " . ucfirst($nearestCityName)  . config('delivery.day') . "</strong>. <br>Bezorging tussen <strong>" . $nearestCityCenter['delivery_time'] . "</strong> tot <strong>" . config('delivery.delivery_end_time') . "</strong> uur.";
+        $result->address = $geo['formatted_address'] ?? $fullAddress;
 
         return $result;
     }
 
-    private function haversineDistance($lat1, $lon1, $lat2, $lon2)
+    /**
+     * Bereken afstand in km tussen 2 coördinaten (Haversine-formule)
+     */
+    private function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371)
     {
-        $earthRadius = 6371;
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
 
-        $latDelta = deg2rad($lat2 - $lat1);
-        $lonDelta = deg2rad($lon2 - $lon1);
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
 
-        $a = sin($latDelta / 2) ** 2 +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($lonDelta / 2) ** 2;
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+                cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
 
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return $earthRadius * $c;
+        return $angle * $earthRadius;
     }
 }

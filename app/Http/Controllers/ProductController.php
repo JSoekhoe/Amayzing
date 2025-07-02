@@ -5,17 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Services\DeliveryCheckerService;
-use Illuminate\Support\Facades\Config;
 
 class ProductController extends Controller
 {
     public function index(Request $request, DeliveryCheckerService $deliveryChecker)
     {
         $deliveryMethod = $request->input('delivery_method', 'afhalen');
-        $postcode = $request->input('postcode');
-        $housenumber = $request->input('housenumber');
-        $addition = $request->input('addition');  // Toegevoeging
 
+        // Haal postcode, huisnummer en toevoeging uit request, of fallback naar sessie
+        $postcode = $request->input('postcode', session('postcode'));
+        $housenumber = $request->input('housenumber', session('housenumber'));
+        $addition = $request->input('addition', session('addition'));
+
+        // Haal producten op
         $query = Product::query();
         if ($deliveryMethod === 'afhalen') {
             $query->where('pickup_stock', '>', 0);
@@ -24,23 +26,18 @@ class ProductController extends Controller
         }
         $products = $query->paginate(9)->withQueryString();
 
+        // Initieer bezorgstatus
         $deliveryAllowed = null;
         $deliveryMessage = '';
 
         if ($deliveryMethod === 'bezorgen') {
-            if ($postcode && $housenumber) {
-                // Nu met addition doorgegeven
-                $deliveryCheckResult = $deliveryChecker->check($postcode, $housenumber, $addition);
+            $result = $deliveryChecker->check($postcode, $housenumber, $addition, $deliveryMethod);
 
-                $deliveryAllowed = $deliveryCheckResult->allowed;
-                $deliveryMessage = $deliveryCheckResult->message;
-            } else {
-                $deliveryAllowed = false;
-                $deliveryMessage = 'Voer een postcode en huisnummer in om bezorging te kunnen controleren.';
-            }
+            $deliveryAllowed = $result->allowed;
+            $deliveryMessage = $result->message;
         }
 
-        // Bezorg- en Afhaalinformatie vanuit config laden
+        // Configs ophalen
         $cities = config('delivery.cities');
         $radiusKm = config('delivery.max_distance_km');
         $orderCutoff = config('delivery.last_order_time');
@@ -48,16 +45,13 @@ class ProductController extends Controller
         $pickupLocations = config('pickup.locations');
         $pickupMessage = config('pickup.message');
 
+        $weekdayCities = array_filter($cities, fn($city) =>
+        in_array(strtolower($city['delivery_day']), ['monday','tuesday','wednesday','thursday','friday'])
+        );
+        $weekendCities = array_filter($cities, fn($city) =>
+        in_array(strtolower($city['delivery_day']), ['saturday','sunday'])
+        );
 
-        // Bereken starttijd voor weekdagen & weekend (voorbeeld)
-        $weekdayCities = array_filter($cities, function ($city) {
-            return in_array(strtolower($city['delivery_day']), ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']);
-        });
-        $weekendCities = array_filter($cities, function ($city) {
-            return in_array(strtolower($city['delivery_day']), ['saturday', 'sunday']);
-        });
-
-        // Pak de eerste delivery_time voor weekdagen en weekend (kan je naar wens aanpassen)
         $deliveryStartWeekday = count($weekdayCities) ? reset($weekdayCities)['delivery_time'] : '-';
         $deliveryStartWeekend = count($weekendCities) ? reset($weekendCities)['delivery_time'] : '-';
 

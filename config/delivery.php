@@ -18,7 +18,7 @@ return [
             'delivery_time' => 'vanaf 14:00 uur',
         ],
         'denhaag' => [
-            'center' => ['lat' => 52.0705, 'lng' => 4.3007], // coördinaten Den Haag
+            'center' => ['lat' => 52.0705, 'lng' => 4.3007],
             'delivery_day' => 'saturday',
             'delivery_time' => 'vanaf 11:00 uur',
         ],
