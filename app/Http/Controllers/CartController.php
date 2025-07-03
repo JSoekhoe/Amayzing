@@ -19,17 +19,17 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $cart = session('cart', []);
+        $deliveryMethod = $request->input('type', session('delivery_method', 'afhalen'));
+        session(['delivery_method' => $deliveryMethod]);
 
         $productIds = array_keys($cart);
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-        // Verrijk de cart data met actuele product modellen
         foreach ($cart as $productId => &$types) {
             foreach ($types as $type => &$item) {
                 if (isset($products[$productId])) {
-                    $item['product'] = $products[$productId];  // Eloquent model toevoegen
+                    $item['product'] = $products[$productId];
                 } else {
-                    // Product bestaat niet meer, verwijderen uit cart
                     unset($cart[$productId][$type]);
                 }
             }
@@ -39,10 +39,10 @@ class CartController extends Controller
         }
         unset($types, $item);
 
-        $deliveryMethod = $request->input('type', 'bezorgen');
-
         return view('cart.index', compact('cart', 'deliveryMethod'));
     }
+
+
 
     // Voeg een product toe aan de cart
     public function add(Request $request, Product $product)
@@ -76,6 +76,7 @@ class CartController extends Controller
                 'addition' => $addition,
                 'delivery_check_passed' => true,
             ]);
+
         }
 
         $cart = session('cart', []);

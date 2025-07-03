@@ -8,6 +8,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Helpers\GeoHelper;
 use App\Services\GoogleGeocodingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -92,7 +93,8 @@ class OrderController extends Controller
             'pickup_time' => $data['pickup_time'] ?? null,
             'total_price' => $total,
         ]);
-        \Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
+        $order->load('items.product'); // laad ook direct de producten bij de order items
+        Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
 
 
         // OrderItems opslaan
@@ -162,6 +164,14 @@ class OrderController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    public function downloadOrderPdf($orderId)
+    {
+        $order = Order::with('items.product')->findOrFail($orderId);
+
+        $pdf = Pdf::loadView('pdf.order-confirmation', compact('order'));
+        return $pdf->download('bestelling_'.$order->id.'.pdf');
     }
 
 

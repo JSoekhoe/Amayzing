@@ -13,25 +13,19 @@ return new class extends Migration
             $table->string('name');
             $table->string('email');
             $table->string('phone');
-
-            // Alleen verplicht bij bezorgen
             $table->string('address')->nullable();
             $table->string('postcode')->nullable();
-
-            // 'afhalen' of 'bezorgen'
+            $table->string('housenumber')->nullable();
+            $table->string('addition')->nullable();
             $table->enum('type', ['afhalen', 'bezorgen']);
-
-            // Alleen verplicht bij afhalen
             $table->time('pickup_time')->nullable();
-
             $table->decimal('total_price', 8, 2);
-
-            // Optioneel
-            $table->text('note')->nullable();          // extra opmerkingen
-            $table->boolean('paid')->default(false);   // handig voor betaling later
-
+            $table->text('note')->nullable();
+            $table->boolean('paid')->default(false);
+            $table->string('payment_id')->nullable()->after('id');
             $table->timestamps();
         });
+
     }
 
     public function down(): void

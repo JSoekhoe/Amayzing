@@ -2,36 +2,57 @@
 
 namespace App\Http\Controllers;
 
-    use Illuminate\Http\Request;
-    use Stripe\Stripe;
-    use Stripe\PaymentIntent;
+use Illuminate\Http\Request;
+use App\Models\Order;
+use Mollie\Api\MollieApiClient;
 
 class PaymentController extends Controller
 {
-    public function checkout()
+    public function paymentCheckout($orderId)
     {
-        return view('payment.checkout');
+        $order = Order::findOrFail($orderId);
+        $amount = number_format($order->total_price, 2, '.', ''); // Mollie verwacht string in 2 decimalen
+
+        return view('payment.checkout', compact('order', 'amount'));
     }
 
     public function process(Request $request)
     {
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        $request->validate([
+            'amount' => 'required|numeric|min:0.5',
+            'order_id' => 'required|integer|exists:orders,id',
+        ]);
 
-        $amount = $request->input('amount'); // in euro’s, moet * 100 (cents)
+        $amount = number_format($request->input('amount'), 2, '.', '');
+
+        $mollie = new MollieApiClient();
+        $mollie->setApiKey(env('MOLLIE_KEY'));
 
         try {
-            $paymentIntent = PaymentIntent::create([
-                'amount' => $amount * 100, // Stripe verwacht centen
-                'currency' => 'eur',
-                'payment_method_types' => ['card'],
-                'description' => 'Betaling bestelling Amayzing',
+            $order = \App\Models\Order::findOrFail($request->input('order_id'));
+
+            $payment = $mollie->payments->create([
+                "amount" => [
+                    "currency" => "EUR",
+                    "value" => $amount, // string met 2 decimalen
+                ],
+                "description" => "Bestelling #{$order->id}",
+                "redirectUrl" => route('thankyou'), // waar gebruiker terugkomt na betaling
+                "metadata" => [
+                    "order_id" => $order->id,
+                ],
             ]);
 
+            // Optioneel: sla Mollie payment ID op in order voor later check
+            $order->update(['payment_id' => $payment->id]);
+
             return response()->json([
-                'clientSecret' => $paymentIntent->client_secret,
+                'checkoutUrl' => $payment->getCheckoutUrl(),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json([
+                'error' => 'Betaling kon niet worden aangemaakt: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

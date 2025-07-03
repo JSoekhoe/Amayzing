@@ -35,8 +35,11 @@ Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.s
 Route::get('/thank-you', fn() => view('checkout.thankyou'))->name('thankyou');
 
 // Betaling
-Route::get('/payment', [PaymentController::class, 'checkout'])->name('payment.checkout');
+Route::get('/payment/checkout/{orderId}', [PaymentController::class, 'paymentCheckout'])->name('payment.checkout');
 Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
+Route::get('/thankyou', function () {
+    return view('payment.thankyou'); // simpele bedankpagina
+})->name('thankyou');
 
 // Profielbeheer (alleen voor ingelogde gebruikers)
 Route::middleware('auth')->group(function () {
@@ -61,6 +64,7 @@ Route::prefix('admin')
     });
 
 Route::get('/check-delivery', [OrderController::class, 'checkDelivery'])->name('check.delivery');
+Route::get('/orders/{id}/pdf', [OrderController::class, 'downloadPdf'])->name('orders.downloadPdf');
 
 
 // Authenticatie (login/register routes)

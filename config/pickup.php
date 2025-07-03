@@ -3,7 +3,7 @@
 return [
     'locations' => [
         'wormerveer' => [
-            'name' => 'Wormerveer – Industrieweg 19a',
+            'name' => 'Wormerveer – Industrieweg 19A',
             'days' => 'Dinsdag t/m zaterdag: 12:00 – 17:00',
             'hours' => [
                 'maandag' => ['open' => '00:00', 'close' => '00:00'], // gesloten
@@ -16,7 +16,7 @@ return [
             ],
         ],
         'weesp' => [
-            'name' => 'Weesp – Eli Café',
+            'name' => 'Weesp – Eli Café – Slijkstraat 19',
             'days' => 'Dinsdag t/m vrijdag: 09:00 – 18:00<br>Zaterdag & zondag: 10:00 – 18:00',
             'hours' => [
                 'maandag' => ['open' => '00:00', 'close' => '00:00'], // gesloten

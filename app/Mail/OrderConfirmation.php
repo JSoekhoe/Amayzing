@@ -20,10 +20,11 @@ class OrderConfirmation extends Mailable
 
     public function build()
     {
-        $pdf = Pdf::loadView('emails.invoice', ['order' => $this->order]);
+        $pdf = Pdf::loadView('emails.order_confirmation_pdf', ['order' => $this->order]);
 
         return $this->subject('Bevestiging van je bestelling bij Amayzing')
             ->view('emails.order_confirmation')
             ->attachData($pdf->output(), "factuur_order_{$this->order->id}.pdf");
     }
+
 }

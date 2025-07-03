@@ -21,111 +21,131 @@
             @foreach($cart as $productId => $types)
                 @foreach($types as $type => $data)
                     @php
-                        $product = \App\Models\Product::find($productId);
+                        $product = $products->get($productId);
                         $quantity = $data['quantity'];
                         $subtotal = $product->price * $quantity;
                     @endphp
-                    <p class="text-gray-800 font-semibold mb-1">{{ $product->name }} <span class="text-sm lowercase font-normal">({{ ucfirst($type) }})</span> × {{ $quantity }} — <span class="font-normal">€{{ number_format($subtotal, 2, ',', '.') }}</span></p>
+                    <p class="text-gray-800 font-semibold mb-1">
+                        {{ $product->name }}
+                        <span class="text-sm lowercase font-normal">({{ ucfirst($type) }})</span> × {{ $quantity }} —
+                        <span class="font-normal">€{{ number_format($subtotal, 2, ',', '.') }}</span>
+                    </p>
                 @endforeach
             @endforeach
 
-            <p class="mt-4 font-semibold text-gray-700">Bezorgkosten: <span class="font-normal">€{{ number_format($deliveryFee, 2, ',', '.') }}</span></p>
-            <p class="text-xl font-serif font-bold mt-1 text-gray-800">Totaal te betalen: <span class="font-normal">€{{ number_format($grandTotal, 2, ',', '.') }}</span></p>
+            <p class="mt-4 font-semibold text-gray-700">
+                Bezorgkosten: <span class="font-normal">€{{ number_format($deliveryFee, 2, ',', '.') }}</span>
+            </p>
+            <p class="text-xl font-serif font-bold mt-1 text-gray-800">
+                Totaal te betalen: <span class="font-normal">€{{ number_format($grandTotal, 2, ',', '.') }}</span>
+            </p>
         </div>
 
         <form action="{{ route('checkout.store') }}" method="POST" class="space-y-8 bg-white p-8 rounded-xl shadow-md border border-gray-300">
             @csrf
             <input type="hidden" name="type" value="{{ $deliveryMethod }}">
 
-            <div>
-                <label for="name" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Naam</label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value="{{ old('name') }}"
-                    required
-                    placeholder="Jouw naam"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
-                >
-            </div>
+            {{-- Algemene klantgegevens --}}
+            @foreach([
+                ['name' => 'name', 'type' => 'text', 'label' => 'Naam', 'placeholder' => 'Jouw naam'],
+                ['name' => 'email', 'type' => 'email', 'label' => 'E-mail', 'placeholder' => 'email@voorbeeld.nl'],
+                ['name' => 'phone', 'type' => 'tel', 'label' => 'Telefoonnummer', 'placeholder' => '+31 6 12345678'],
+            ] as $field)
+                <div>
+                    <label for="{{ $field['name'] }}" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">
+                        {{ $field['label'] }}
+                    </label>
+                    <input
+                        type="{{ $field['type'] }}"
+                        id="{{ $field['name'] }}"
+                        name="{{ $field['name'] }}"
+                        value="{{ old($field['name']) }}"
+                        required
+                        placeholder="{{ $field['placeholder'] }}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error($field['name']) border-red-500 @enderror"
+                    >
+                    @error($field['name'])
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endforeach
 
-            <div>
-                <label for="email" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">E-mail</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="{{ old('email') }}"
-                    required
-                    placeholder="email@voorbeeld.nl"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
-                >
-            </div>
-
-            <div>
-                <label for="phone" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Telefoonnummer</label>
-                <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value="{{ old('phone') }}"
-                    required
-                    placeholder="+31 6 12345678"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
-                >
-            </div>
-
+            {{-- Bezorgadres --}}
             @if($deliveryMethod === 'bezorgen')
-                <div>
-                    <label for="address" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Bezorgadres</label>
-                    <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        value="{{ old('address') }}"
-                        required
-                        placeholder="Straatnaam 123"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
-                    >
-                </div>
-
-                <div>
-                    <label for="postcode" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Postcode</label>
-                    <input
-                        type="text"
-                        id="postcode"
-                        name="postcode"
-                        value="{{ old('postcode') }}"
-                        required
-                        placeholder="1234 AB"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
-                    >
-                </div>
+                @foreach([
+                    ['name' => 'address', 'label' => 'Straat', 'placeholder' => 'Straatnaam', 'value' => old('address')],
+                    ['name' => 'housenumber', 'label' => 'Huisnummer', 'placeholder' => '123', 'value' => old('housenumber', $housenumber)],
+                    ['name' => 'addition', 'label' => 'Toevoeging', 'placeholder' => 'Bijv. A, Bus', 'value' => old('addition', $addition)],
+                    ['name' => 'postcode', 'label' => 'Postcode', 'placeholder' => '1234 AB', 'value' => old('postcode', $postcode)],
+                ] as $field)
+                    <div>
+                        <label for="{{ $field['name'] }}" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">
+                            {{ $field['label'] }}
+                        </label>
+                        <input
+                            type="text"
+                            id="{{ $field['name'] }}"
+                            name="{{ $field['name'] }}"
+                            value="{{ $field['value'] }}"
+                            {{ $field['name'] !== 'addition' ? 'required' : '' }}
+                            placeholder="{{ $field['placeholder'] }}"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error($field['name']) border-red-500 @enderror"
+                        >
+                        @error($field['name'])
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endforeach
             @endif
 
+            {{-- Afhalen --}}
             @if($deliveryMethod === 'afhalen')
                 <div>
+                    <label for="pickup_location" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaallocatie</label>
+                    <select
+                        id="pickup_location"
+                        name="pickup_location"
+                        required
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_location') border-red-500 @enderror"
+                    >
+                        <option value="" disabled {{ old('pickup_location') ? '' : 'selected' }}>Kies een locatie</option>
+                        @foreach($pickupLocations as $key => $location)
+                            <option value="{{ $key }}" {{ old('pickup_location') === $key ? 'selected' : '' }}>
+                                {{ $location }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('pickup_location')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label for="pickup_time" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaaltijd</label>
-                    <input
-                        type="time"
+                    <select
                         id="pickup_time"
                         name="pickup_time"
-                        value="{{ old('pickup_time') }}"
                         required
-                        min="{{ $minPickupTime }}"
-                        max="21:00"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_time') border-red-500 @enderror"
                     >
-                    <small class="text-gray-500 italic">Afhalen kan vanaf {{ $minPickupTime }} tot 21:00 uur</small>
+                        <option value="" disabled {{ old('pickup_time') ? '' : 'selected' }}>Kies een tijdslot</option>
+                        @foreach($timeSlots as $slot)
+                            <option value="{{ $slot }}" {{ old('pickup_time') === $slot ? 'selected' : '' }}>
+                                {{ $slot }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('pickup_time')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             @endif
 
             <button
                 type="submit"
-                class="w-full bg-gray-700 hover:bg-gray-800 text-white font-serif font-semibold py-3 rounded-2xl shadow-lg transition"
+                class="bg-gray-900 w-full mt-4 py-3 rounded-lg text-white text-lg font-semibold tracking-wide hover:bg-gray-800 transition"
             >
-                Bestelling plaatsen
+                Plaats bestelling
             </button>
         </form>
     </div>
