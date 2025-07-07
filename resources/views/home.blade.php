@@ -1,11 +1,12 @@
 <x-app-layout>
     {{-- Hero sectie met achtergrond en CTA --}}
-    <section class="relative bg-cover bg-center h-screen" style="background-image: url('/images/hero-patisserie.jpg');">
-        <div class="absolute inset-0 bg-black opacity-50"></div>
+    <section class="relative bg-cover bg-center h-screen" style="background-image: url('/images/home.jpeg');
+">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
         <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
             <h1 class="text-5xl font-extrabold text-white mb-4">Luxe patisserie</h1>
             <p class="text-xl text-white max-w-2xl mb-8">
-                Exquise creaties, vakmanschap en passie – op maat gemaakt voor uw mooiste momenten.
+                Exclusieve creaties, vakmanschap en passie – op maat gemaakt voor uw mooiste momenten.
             </p>
             <a href="#about" class="bg-white text-gray-800 px-6 py-3 font-semibold rounded shadow hover:bg-gray-100 transition">
                 Ontdek meer
@@ -56,11 +57,8 @@
             <h2 class="text-3xl font-bold text-gray-800 mb-4">Laat u verleiden door aMayzing</h2>
             <p class="text-lg text-gray-700 mb-8">
                 Voor vragen of bestellingen: bel <a href="tel:0858882901" class="text-blue-600 hover:underline">085‑8882901</a>
-                of mail ons gerust.
+                .
             </p>
-            <a href="mailto:info@amayzingpastry.nl" class="bg-blue-600 text-white px-6 py-3 font-semibold rounded hover:bg-blue-700 transition">
-                Neem contact op
-            </a>
         </div>
     </section>
 </x-app-layout>

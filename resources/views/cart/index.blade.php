@@ -19,14 +19,12 @@
         @if(empty($cart))
             <div class="text-center py-20 text-gray-500">
                 <p class="text-xl mb-4">Je winkelwagen is leeg.</p>
-                <a href="{{ route('products.index', [
-                    'postcode' => session('postcode'),
-                    'housenummer' => session('housenummer'),
-                    'toevoeging' => session('toevoeging'),
-                    'delivery_method' => session('delivery_method', 'afhalen'),
-                ]) }}" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-semibold py-3 px-8 rounded shadow transition">
-                    Ga terug naar producten
-                </a>
+                <div class="max-w-7xl mx-auto px-6 mb-6">
+                    <a href="{{ route('products.index') }}"
+                       class="inline-block bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-full py-3 px-6 shadow transition">
+                        &larr; Ga terug naar producten
+                    </a>
+                </div>
             </div>
         @else
             @php $total = 0; @endphp
@@ -111,7 +109,15 @@
 
             {{-- Totaal en afrekenen --}}
             @php
-                $deliveryFee = ($total < 99) ? 5.50 : 0;
+                $hasDelivery = false;
+                foreach ($cart as $productId => $types) {
+                    if (isset($types['bezorgen'])) {
+                        $hasDelivery = true;
+                        break;
+                    }
+                }
+
+                $deliveryFee = ($hasDelivery && $total < 99) ? 5.50 : 0;
                 $grandTotal = $total + $deliveryFee;
             @endphp
 
@@ -121,13 +127,15 @@
                 <p class="text-2xl font-extrabold mb-6 text-gray-900">Totaal te betalen: €{{ number_format($grandTotal, 2, ',', '.') }}</p>
 
                 <form action="{{ route('checkout.index') }}" method="GET">
-                    <input type="hidden" name="type" value="{{ $deliveryMethod }}">
                     <button type="submit"
+                            name="type"
+                            value="{{ $deliveryMethod }}"
                             class="inline-block w-auto px-8 py-3 bg-gray-800 hover:bg-gray-900 focus:bg-gray-900 text-white font-bold rounded-lg shadow-md focus:outline-none focus:ring-4 focus:ring-gray-700 transition"
                     >
-                        Verder naar afrekenen
+                        Bestelling plaatsen
                     </button>
                 </form>
+
             </div>
         @endif
     </div>

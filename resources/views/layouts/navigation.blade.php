@@ -10,6 +10,7 @@
 
             {{-- Navigatielinks desktop --}}
             <div class="hidden md:flex space-x-10 items-center text-base text-gray-700">
+                <x-nav-link :href="route('home')" :active="request()->routeIs('home')">Home</x-nav-link>
                 <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">Producten</x-nav-link>
                 <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.index')">Winkelwagen</x-nav-link>
 
@@ -65,6 +66,7 @@
     {{-- Mobiele navigatie --}}
     <div :class="{ 'block': open, 'hidden': ! open }" class="md:hidden">
         <div class="px-4 pt-4 pb-3 space-y-2 text-base text-gray-700">
+            <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')">Home</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">Producten</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.index')">Winkelwagen</x-responsive-nav-link>
             @auth

@@ -27,6 +27,11 @@ return [
             'delivery_day' => 'sunday',
             'delivery_time' => 'vanaf 11:00 uur',
         ],
+        'almere' => [
+            'center' => ['lat' => 52.37527, 'lng' => 5.21933],
+            'delivery_day' => 'tuesday',
+            'delivery_time' => 'vanaf 14:00',
+        ],
     ],
 
     'max_distance_km' => 10,

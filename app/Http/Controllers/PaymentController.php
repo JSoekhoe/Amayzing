@@ -5,13 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use Mollie\Api\MollieApiClient;
+use Illuminate\Support\Facades\Mail;
+
 
 class PaymentController extends Controller
 {
     public function paymentCheckout($orderId)
     {
         $order = Order::findOrFail($orderId);
-        $amount = number_format($order->total_price, 2, '.', ''); // Mollie verwacht string in 2 decimalen
+        $amount = number_format($order->total_price, 2, '.', '');
 
         return view('payment.checkout', compact('order', 'amount'));
     }
@@ -29,21 +31,24 @@ class PaymentController extends Controller
         $mollie->setApiKey(env('MOLLIE_KEY'));
 
         try {
-            $order = \App\Models\Order::findOrFail($request->input('order_id'));
+            $order = Order::findOrFail($request->input('order_id'));
 
             $payment = $mollie->payments->create([
                 "amount" => [
                     "currency" => "EUR",
-                    "value" => $amount, // string met 2 decimalen
+                    "value" => $amount,
                 ],
                 "description" => "Bestelling #{$order->id}",
-                "redirectUrl" => route('thankyou'), // waar gebruiker terugkomt na betaling
+                "redirectUrl" => route('thankyou', ['orderId' => $order->id], true),
+                "webhookUrl" => route('mollie.webhook', [], true),
+
                 "metadata" => [
                     "order_id" => $order->id,
                 ],
             ]);
-
-            // Optioneel: sla Mollie payment ID op in order voor later check
+            \Log::info('Mollie Payment aangemaakt', [
+                'payment_id' => $payment->id,
+                'order_id' => $order->id]);
             $order->update(['payment_id' => $payment->id]);
 
             return response()->json([
@@ -55,4 +60,44 @@ class PaymentController extends Controller
             ], 500);
         }
     }
+
+    public function webhook(Request $request)
+    {
+        $mollie = new MollieApiClient();
+        $mollie->setApiKey(env('MOLLIE_KEY'));
+
+        $paymentId = $request->input('id');
+
+        try {
+            $payment = $mollie->payments->get($paymentId);
+            $orderId = $payment->metadata->order_id;
+
+            $order = Order::with('items.product')->find($orderId);
+
+            if (!$order) {
+                \Log::warning("Webhook: Geen order gevonden voor betaling ID: {$paymentId}");
+                return response('Order not found', 404);
+            }
+
+            if ($payment->isPaid() && !$order->paid_at) {
+                // Markeer als betaald
+                $order->update([
+                    'paid_at' => now(),
+                    'status' => 'paid', // optioneel, als je een statuskolom hebt
+                ]);
+
+                // Verstuur e-mail
+                Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
+                Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
+
+                \Log::info("Mollie betaling voltooid en e-mails verzonden voor order {$order->id}");
+            }
+
+            return response('OK', 200);
+        } catch (\Exception $e) {
+            \Log::error('Mollie webhook fout: ' . $e->getMessage());
+            return response('Webhook error', 500);
+        }
+    }
+
 }

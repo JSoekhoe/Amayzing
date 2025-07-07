@@ -18,6 +18,7 @@ class Product extends Model
         'pickup_stock',
         'delivery_stock',
         'is_active',
+        'image',
     ];
 
 

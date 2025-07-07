@@ -9,6 +9,7 @@ use App\Http\Controllers\{
     CartController,
     CheckoutController,
     PaymentController,
+    ThankYouController,
     Admin\OrderAdminController,
     Admin\ProductAdminController
 };
@@ -32,14 +33,15 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.in
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
 // Bedankpagina
-Route::get('/thank-you', fn() => view('checkout.thankyou'))->name('thankyou');
+Route::get('/thank-you', [ThankYouController::class, 'index'])->name('thankyou');
 
 // Betaling
-Route::get('/payment/checkout/{orderId}', [PaymentController::class, 'paymentCheckout'])->name('payment.checkout');
 Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
-Route::get('/thankyou', function () {
-    return view('payment.thankyou'); // simpele bedankpagina
-})->name('thankyou');
+Route::get('/payment/checkout/{orderId}', [PaymentController::class, 'paymentCheckout'])->name('payment.checkout');
+
+// Mollie webhook endpoint voor betaling updates
+Route::post('/webhook/mollie', [PaymentController::class, 'handle'])->name('mollie.webhook');
+Route::get('/thankyou/{orderId}', [PaymentController::class, 'thankyou'])->name('thankyou');
 
 // Profielbeheer (alleen voor ingelogde gebruikers)
 Route::middleware('auth')->group(function () {
@@ -48,24 +50,22 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Producten
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
 // Admin routes (alleen voor beheerders)
-
 Route::prefix('admin')
-    ->middleware(['auth', 'is_admin'])->name('admin.')->group(function () {
+    ->middleware(['auth', 'is_admin'])
+    ->name('admin.')
+    ->group(function () {
         Route::get('/orders', [OrderAdminController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [OrderAdminController::class, 'show'])->name('orders.show');
         Route::patch('/orders/{order}/status', [OrderAdminController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::delete('/orders/{order}', [OrderAdminController::class, 'destroy'])->name('orders.destroy');
 
-        // products
+        // Producten admin
         Route::resource('products', ProductAdminController::class);
     });
-
-Route::get('/check-delivery', [OrderController::class, 'checkDelivery'])->name('check.delivery');
-Route::get('/orders/{id}/pdf', [OrderController::class, 'downloadPdf'])->name('orders.downloadPdf');
-
 
 // Authenticatie (login/register routes)
 require __DIR__.'/auth.php';

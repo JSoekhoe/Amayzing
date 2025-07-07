@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email');
             $table->string('phone');
-            $table->string('address')->nullable();
+            $table->string('street')->nullable();
             $table->string('postcode')->nullable();
             $table->string('housenumber')->nullable();
             $table->string('addition')->nullable();
@@ -21,8 +21,9 @@ return new class extends Migration
             $table->time('pickup_time')->nullable();
             $table->decimal('total_price', 8, 2);
             $table->text('note')->nullable();
-            $table->boolean('paid')->default(false);
-            $table->string('payment_id')->nullable()->after('id');
+            $table->string('payment_id')->nullable();
+            $table->string('status')->default('pending');
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
 

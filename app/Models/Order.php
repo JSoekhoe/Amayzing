@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'email', 'phone', 'address', 'postcode', 'type', 'pickup_time', 'total_price', 'status','address','housnumber','addition'
+        'name', 'email', 'phone', 'street', 'postcode', 'housenumber', 'addition', 'type', 'pickup_time', 'total_price', 'status','payment_id',
     ];
 
 
@@ -20,5 +20,10 @@ class Order extends Model
     {
         return $this->hasMany(\App\Models\OrderItem::class);
     }
+    public function getFullAddressAttribute()
+    {
+        return trim("{$this->street} {$this->housenumber} {$this->addition}, {$this->postcode}");
+    }
+
 }
 

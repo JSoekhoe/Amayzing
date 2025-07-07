@@ -78,17 +78,19 @@
 </div>
 
 <div class="mb-6">
-    <label for="is_active" class="inline-flex items-center cursor-pointer">
-        <input
-            type="checkbox"
-            name="is_active"
-            id="is_active"
-            class="form-checkbox h-5 w-5 text-gray-600"
-            value="1"
-            {{ old('is_active', $product->is_active ?? true) ? 'checked' : '' }}>
-        <span class="ml-3 text-gray-800 font-semibold select-none">Actief</span>
-    </label>
-    @error('is_active')
+    <label for="image" class="block text-gray-800 font-semibold mb-2">Productfoto</label>
+    <input
+        type="file"
+        name="image"
+        id="image"
+        accept="image/*"
+        class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-transparent"
+    >
+    @error('image')
     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
     @enderror
+
+    @if(isset($product) && $product->image)
+        <img src="{{ asset('storage/' . $product->image) }}" alt="Productfoto" class="mt-4 max-h-48 rounded">
+    @endif
 </div>

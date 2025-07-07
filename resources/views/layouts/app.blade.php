@@ -37,6 +37,22 @@
 
 {{-- Inhoud --}}
 <main>
+    @php
+        $previousUrl = url()->previous();
+    @endphp
+
+    <div class="max-w-7xl mx-auto px-6 mb-6">
+        <button
+            onclick="if(document.referrer !== '') { window.history.back(); } else { window.location.href='{{ url('/') }}'; }"
+            class="inline-block text-gray-600 hover:text-gray-800 transition cursor-pointer font-medium text-sm"
+            style="background: none; border: none; padding: 0;"
+            aria-label="Terug"
+        >
+            &larr; Terug
+        </button>
+    </div>
+
+
     {{ $slot }}
 </main>
 

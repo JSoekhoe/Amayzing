@@ -41,9 +41,13 @@
             </p>
         </div>
 
+        @php
+            $currentDeliveryMethod = old('type', $deliveryMethod);
+        @endphp
+
         <form action="{{ route('checkout.store') }}" method="POST" class="space-y-8 bg-white p-8 rounded-xl shadow-md border border-gray-300">
             @csrf
-            <input type="hidden" name="type" value="{{ $deliveryMethod }}">
+            <input type="hidden" name="type" value="{{ $currentDeliveryMethod }}">
 
             {{-- Algemene klantgegevens --}}
             @foreach([
@@ -71,12 +75,14 @@
             @endforeach
 
             {{-- Bezorgadres --}}
-            @if($deliveryMethod === 'bezorgen')
+            @if($currentDeliveryMethod === 'bezorgen')
+                @php $isReadonly = true; @endphp
+
                 @foreach([
-                    ['name' => 'address', 'label' => 'Straat', 'placeholder' => 'Straatnaam', 'value' => old('address')],
-                    ['name' => 'housenumber', 'label' => 'Huisnummer', 'placeholder' => '123', 'value' => old('housenumber', $housenumber)],
-                    ['name' => 'addition', 'label' => 'Toevoeging', 'placeholder' => 'Bijv. A, Bus', 'value' => old('addition', $addition)],
-                    ['name' => 'postcode', 'label' => 'Postcode', 'placeholder' => '1234 AB', 'value' => old('postcode', $postcode)],
+                    ['name' => 'straat', 'label' => 'Straat', 'placeholder' => 'Straatnaam', 'value' => old('straat', $straat ?? '')],
+                    ['name' => 'housenumber', 'label' => 'Huisnummer', 'placeholder' => '123', 'value' => old('housenumber', $housenumber ?? '')],
+                    ['name' => 'addition', 'label' => 'Toevoeging', 'placeholder' => 'Bijv. A, Bus', 'value' => old('addition', $addition ?? '')],
+                    ['name' => 'postcode', 'label' => 'Postcode', 'placeholder' => '1234 AB', 'value' => old('postcode', $postcode ?? '')],
                 ] as $field)
                     <div>
                         <label for="{{ $field['name'] }}" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">
@@ -89,7 +95,8 @@
                             value="{{ $field['value'] }}"
                             {{ $field['name'] !== 'addition' ? 'required' : '' }}
                             placeholder="{{ $field['placeholder'] }}"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error($field['name']) border-red-500 @enderror"
+                            @if($isReadonly) readonly @endif
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-100 text-gray-700 focus:outline-none focus:ring-0 focus:border-gray-300 transition @error($field['name']) border-red-500 @enderror"
                         >
                         @error($field['name'])
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -99,7 +106,7 @@
             @endif
 
             {{-- Afhalen --}}
-            @if($deliveryMethod === 'afhalen')
+            @if($currentDeliveryMethod === 'afhalen')
                 <div>
                     <label for="pickup_location" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaallocatie</label>
                     <select
@@ -150,3 +157,4 @@
         </form>
     </div>
 </x-app-layout>
+ q

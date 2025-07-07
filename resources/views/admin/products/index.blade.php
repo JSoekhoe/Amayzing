@@ -23,6 +23,7 @@
             <table class="min-w-full divide-y divide-gray-300">
                 <thead class="bg-gray-100">
                 <tr>
+                    <th class="px-8 py-5 text-left text-sm font-serif font-semibold text-gray-700 uppercase tracking-wider">Foto</th>
                     <th class="px-8 py-5 text-left text-sm font-serif font-semibold text-gray-700 uppercase tracking-wider">Naam</th>
                     <th class="px-8 py-5 text-left text-sm font-serif font-semibold text-gray-700 uppercase tracking-wider">Prijs</th>
                     <th class="px-8 py-5 text-left text-sm font-serif font-semibold text-gray-700 uppercase tracking-wider">Pickup voorraad</th>
@@ -33,6 +34,13 @@
                 <tbody class="bg-white divide-y divide-gray-300">
                 @forelse($products as $product)
                     <tr class="hover:bg-gray-50 transition">
+                        <td class="px-8 py-4 whitespace-nowrap">
+                            @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="h-16 w-16 object-cover rounded">
+                            @else
+                                <span class="text-gray-400 italic">Geen foto</span>
+                            @endif
+                        </td>
                         <td class="px-8 py-4 whitespace-nowrap text-gray-900 font-medium">{{ $product->name }}</td>
                         <td class="px-8 py-4 whitespace-nowrap text-gray-800">€ {{ number_format($product->price, 2, ',', '.') }}</td>
                         <td class="px-8 py-4 whitespace-nowrap text-gray-700">{{ $product->pickup_stock }}</td>
@@ -54,7 +62,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-8 py-8 text-center text-gray-400 italic">Geen producten gevonden.</td>
+                        <td colspan="6" class="px-8 py-8 text-center text-gray-400 italic">Geen producten gevonden.</td>
                     </tr>
                 @endforelse
                 </tbody>

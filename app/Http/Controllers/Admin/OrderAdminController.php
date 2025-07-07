@@ -22,19 +22,19 @@ class OrderAdminController extends Controller
 
     public function updateStatus(Request $request, Order $order)
     {
-        $request->validate([
-            'status' => 'required|in:in_behandeling,verzonden,afgerond,geannuleerd',
+        $order->update([
+            'status' => $request->input('status'),
         ]);
 
-        $order->status = $request->status;
-        $order->save();
-
-        return redirect()->back()->with('success', 'Bestelstatus bijgewerkt.');
+        return redirect()->back()->with('success', 'Status succesvol bijgewerkt.');
     }
+
 
     public function destroy(Order $order)
     {
         $order->delete();
         return redirect()->route('admin.orders.index')->with('success', 'Bestelling verwijderd.');
     }
+
+
 }

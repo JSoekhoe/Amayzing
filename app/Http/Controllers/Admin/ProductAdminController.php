@@ -27,10 +27,13 @@ class ProductAdminController extends Controller
             'price' => 'required|numeric|min:0',
             'pickup_stock' => 'required|integer|min:0',
             'delivery_stock' => 'required|integer|min:0',
-            'is_active' => 'sometimes|boolean',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // <--- nieuw
         ]);
 
-        $validated['is_active'] = $request->has('is_active');
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image'] = $path;
+        }
 
         Product::create($validated);
 
@@ -50,10 +53,13 @@ class ProductAdminController extends Controller
             'price' => 'required|numeric|min:0',
             'pickup_stock' => 'required|integer|min:0',
             'delivery_stock' => 'required|integer|min:0',
-            'is_active' => 'sometimes|boolean',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // <--- nieuw
         ]);
 
-        $validated['is_active'] = $request->has('is_active');
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image'] = $path;
+        }
 
         $product->update($validated);
 

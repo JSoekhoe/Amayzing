@@ -1,20 +1,31 @@
 <x-app-layout>
-    <div class="min-h-screen flex items-center justify-center bg-[#f7f6f4] px-6 py-16">
-        <div class="bg-white rounded-3xl shadow-lg max-w-md w-full p-10 text-center">
-            <h1 class="text-3xl font-serif font-bold text-[#386641] mb-8">Betaling</h1>
+    <x-slot name="header">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8">Betaling</h1>
+    </x-slot>
 
-            <p>Te betalen bedrag: <strong>€{{ number_format($amount, 2) }}</strong></p>
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="bg-white border border-gray-200 rounded-3xl shadow-md p-10 text-center">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Bevestig je betaling</h2>
 
-            <button id="pay-button" class="w-full bg-[#9bd5cb] hover:bg-[#78b9aa] text-[#1a433d] font-semibold py-3 rounded-full shadow transition mt-6">
+            <p class="text-lg text-gray-600 mb-6">
+                Te betalen bedrag:
+                <span class="text-2xl font-bold text-gray-900">€{{ number_format($amount, 2, ',', '.') }}</span>
+            </p>
+
+            <button id="pay-button"
+                    class="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 rounded-full shadow-md transition duration-200 focus:outline-none focus:ring-4 focus:ring-gray-300">
                 Betaal nu
             </button>
 
-            <div id="error-message" class="text-red-600 mt-3 text-center text-sm min-h-[1.25rem]"></div>
+            <div id="error-message" class="text-red-600 mt-4 text-sm min-h-[1.5rem] font-medium"></div>
         </div>
     </div>
 
     <script>
         document.getElementById('pay-button').addEventListener('click', async () => {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = ''; // reset foutmelding
+
             try {
                 const response = await fetch("{{ route('payment.process') }}", {
                     method: 'POST',
@@ -23,24 +34,33 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     body: JSON.stringify({
-                        amount: {{ json_encode($amount) }},
+                        amount: "{{ number_format($amount, 2, '.', '') }}",
                         order_id: {{ $order->id }},
                     }),
                 });
 
+                if (!response.ok) {
+                    const text = await response.text();
+                    errorEl.textContent = 'Fout bij betaling: ' + text;
+                    console.error('Response niet OK:', text);
+                    return;
+                }
+
                 const data = await response.json();
 
                 if (data.error) {
-                    document.getElementById('error-message').textContent = data.error;
+                    errorEl.textContent = data.error;
                     return;
                 }
 
                 if (data.checkoutUrl) {
-                    window.location.href = data.checkoutUrl; // redirect naar Mollie checkout
+                    window.location.href = data.checkoutUrl;
+                } else {
+                    errorEl.textContent = "Onbekende fout: geen checkoutUrl ontvangen.";
                 }
             } catch (error) {
-                document.getElementById('error-message').textContent = "Er is iets misgegaan met het starten van de betaling.";
-                console.error(error);
+                errorEl.textContent = "Er is iets misgegaan met het starten van de betaling.";
+                console.error('Fetch error:', error);
             }
         });
     </script>

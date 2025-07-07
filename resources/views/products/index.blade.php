@@ -25,6 +25,18 @@
                 Bezorgen
             </button>
         </form>
+        {{--melding voor winkelwagen toevoeging--}}
+        @if(session('success'))
+            <div class="max-w-7xl mx-auto mb-4 p-4 bg-green-100 border border-green-400 text-green-800 rounded-xl">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="max-w-7xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded-xl">
+                {{ session('error') }}
+            </div>
+        @endif
 
         {{-- Afhaalinformatie --}}
         @if ($deliveryMethod === 'afhalen' || !$deliveryMethod)
@@ -117,19 +129,6 @@
             </div>
         @endif
 
-        {{--melding voor winkelwagen toevoeging--}}
-        @if(session('success'))
-            <div class="max-w-7xl mx-auto mb-4 p-4 bg-green-100 border border-green-400 text-green-800 rounded-xl">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="max-w-7xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded-xl">
-                {{ session('error') }}
-            </div>
-        @endif
-
         {{-- Producten overzicht --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             @forelse ($products as $product)
@@ -138,9 +137,22 @@
                 @endphp
 
                 <article class="bg-white rounded-3xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition">
+                    {{-- Productfoto --}}
+                    @if ($product->image)
+                        <img src="{{ asset('storage/' . $product->image) }}"
+                             alt="{{ $product->name }}"
+                             class="rounded-xl mb-4 max-h-48 w-full object-cover">
+                    @else
+                        <img src="{{ asset('images/placeholder.jpg') }}"
+                             alt="Geen afbeelding beschikbaar"
+                             class="rounded-xl mb-4 max-h-48 w-full object-cover">
+                    @endif
+
+                    {{-- Naam en prijs --}}
                     <h3 class="font-serif text-2xl text-gray-900 mb-3">{{ $product->name }}</h3>
                     <p class="text-gray-800 font-semibold mb-4 text-lg">€{{ number_format($product->price, 2, ',', '.') }}</p>
 
+                    {{-- Voorraad en winkelwagen --}}
                     @if ($availableStock > 0)
                         <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-auto space-y-4">
                             @csrf
@@ -165,7 +177,6 @@
                                 In winkelwagen
                             </button>
                         </form>
-
                     @else
                         <p class="text-red-600 font-semibold mt-4 text-center">
                             Niet beschikbaar voor {{ $deliveryMethod === 'afhalen' ? 'afhalen' : 'bezorgen' }}.
@@ -176,6 +187,12 @@
                 <p class="col-span-full text-center text-gray-500 italic text-lg">Geen producten gevonden.</p>
             @endforelse
         </div>
+
+        {{-- Paginering --}}
+        <div class="mt-10 flex justify-center">
+            {{ $products->withQueryString()->links() }}
+        </div>
+
 
         {{-- Paginering --}}
         <div class="mt-10 flex justify-center">

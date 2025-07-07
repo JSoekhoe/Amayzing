@@ -42,8 +42,6 @@ class CartController extends Controller
         return view('cart.index', compact('cart', 'deliveryMethod'));
     }
 
-
-
     // Voeg een product toe aan de cart
     public function add(Request $request, Product $product)
     {
@@ -69,19 +67,19 @@ class CartController extends Controller
                 return redirect()->back()->with('error', 'Bezorging is niet mogelijk op dit adres: ' . $checkResult->message);
             }
 
-            // Opslaan in sessie zodat gegevens niet verloren gaan
+            // Sla adresgegevens op in sessie
             session([
                 'postcode' => $postcode,
                 'housenumber' => $housenumber,
+                'straat' => $checkResult->street ?? '',
                 'addition' => $addition,
                 'delivery_check_passed' => true,
             ]);
-
         }
 
         $cart = session('cart', []);
 
-        // Verbied mixen van afhalen en bezorgen in 1 cart
+        // Verbied mixen van afhalen en bezorgen in dezelfde cart
         foreach ($cart as $productId => $types) {
             foreach ($types as $existingType => $item) {
                 if ($existingType !== $type) {
@@ -110,7 +108,7 @@ class CartController extends Controller
         } else {
             $cart[$product->id][$type] = [
                 'quantity' => $quantity,
-                // Product details worden pas in index() toegevoegd als model
+                // Product info wordt toegevoegd in index()
             ];
         }
 

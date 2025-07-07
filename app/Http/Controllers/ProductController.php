@@ -10,6 +10,17 @@ class ProductController extends Controller
 {
     public function index(Request $request, DeliveryCheckerService $deliveryChecker)
     {
+
+        $dayTranslations = [
+            'monday' => 'maandag',
+            'tuesday' => 'dinsdag',
+            'wednesday' => 'woensdag',
+            'thursday' => 'donderdag',
+            'friday' => 'vrijdag',
+            'saturday' => 'zaterdag',
+            'sunday' => 'zondag',
+        ];
+
         $deliveryMethod = $request->input('delivery_method', 'afhalen');
 
         // Haal postcode, huisnummer en toevoeging uit request, of fallback naar sessie
@@ -38,7 +49,13 @@ class ProductController extends Controller
         }
 
         // Configs ophalen
+
         $cities = config('delivery.cities');
+        $cities = array_map(function ($city) use ($dayTranslations) {
+            $city['delivery_day'] = $dayTranslations[strtolower($city['delivery_day'])] ?? $city['delivery_day'];
+            return $city;
+        }, $cities);
+
         $radiusKm = config('delivery.max_distance_km');
         $orderCutoff = config('delivery.last_order_time');
         $deliveryEnd = config('delivery.delivery_end_time');

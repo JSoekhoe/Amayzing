@@ -55,7 +55,7 @@ class DeliveryCheckerService
 
         if ($validator->fails()) {
             $result->errors = $validator->errors()->all();
-            $result->message = implode('<br>', $result->errors);
+            $result->message = implode(' ', $result->errors);
             return $result;
         }
 
@@ -65,15 +65,16 @@ class DeliveryCheckerService
         $fullAddress = "{$formattedPostcode} {$housenumber}" . ($addition ? " {$addition}" : "") . ", Nederland";
 
         // 3. Haal coördinaten op via Google Geocode
-        $geo = GoogleGeocodingService::geocode($fullAddress);
+        $geo = BagApiService::geocode($formattedPostcode, $housenumber, $addition);
 
-        if (!$geo || !isset($geo['geometry']['location']['lat'], $geo['geometry']['location']['lng'])) {
+        if (!$geo || !isset($geo['lat'], $geo['lng'])) {
             $result->message = 'Locatiegegevens konden niet worden gevonden. Controleer je adres.';
             return $result;
         }
 
-        $lat = $geo['geometry']['location']['lat'];
-        $lng = $geo['geometry']['location']['lng'];
+        $lat = $geo['lat'];
+        $lng = $geo['lng'];
+
 
         // 4. Bepaal leverdatum (morgen)
         Carbon::setLocale('nl');
@@ -110,7 +111,7 @@ class DeliveryCheckerService
         }
 
         if (!$withinCity || !$nearestCityCenter) {
-            $result->message = 'Helaas, bezorging is niet beschikbaar op dit adres voor levering op ' . $orderWeekdayNl . '.<br>Kies voor <a href="' . ($pickupUrl ?? '#') . '" style="color: #2563eb; text-decoration: underline;">afhalen</a>.';
+            $result->message = 'Helaas, bezorging is niet beschikbaar op dit adres voor levering op ' . $orderWeekdayNl ;
             return $result;
         }
 
@@ -122,10 +123,21 @@ class DeliveryCheckerService
 //        }
 
         // 7. Bezorging toegestaan
+        $straat = $geo['straat'] ?? '';
+        $woonplaats = $geo['woonplaats'] ?? ucfirst($nearestCityName);
+        $postcode = $geo['postcode'] ?? $formattedPostcode;
+
+        $adresRegel = trim("{$straat} {$housenumber}" . ($addition ? " {$addition}" : ""));
+        $adresVolledig = "{$adresRegel}, <br> {$postcode}, {$woonplaats}";
+
         $result->allowed = true;
         $result->selectedDeliveryMethod = 'bezorgen';
-        $result->message = "Bezorging mogelijk in " . ucfirst($nearestCityName)  . config('delivery.day') . "</strong>. <br>Bezorging tussen <strong>" . $nearestCityCenter['delivery_time'] . "</strong> tot <strong>" . config('delivery.delivery_end_time') . "</strong> uur.";
-        $result->address = $geo['formatted_address'] ?? $fullAddress;
+        $result->message = "Bezorging is mogelijk op het volgende adres:<br><strong>{$adresVolledig}</strong><br>" .
+            "Tussen <strong>" . $nearestCityCenter['delivery_time'] . "</strong> en <strong>" . config('delivery.delivery_end_time') . "</strong> uur.";
+        $result->address = $geo['formatted_address'] ?? $adresVolledig;
+        $result->street = $straat;
+
+
 
         return $result;
     }
