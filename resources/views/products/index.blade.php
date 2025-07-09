@@ -58,11 +58,11 @@
 
         {{-- Bezorginformatie en postcodecheck --}}
         @if ($deliveryMethod === 'bezorgen')
-            <div class="flex max-w-6xl mx-auto space-x-6 mb-6">
+            <div class="flex flex-col lg:flex-row max-w-6xl mx-auto gap-6 mb-6">
 
-                {{-- Linker kader: Bezorginformatie --}}
-                <aside class="w-2/3 bg-gray-100 rounded-3xl shadow-sm p-6 text-gray-900">
-                    <h3 class="font-serif text-xl font-semibold mb-4">Bezorginformatie</h3>
+            {{-- Linker kader: Bezorginformatie --}}
+                <aside class="w-full lg:w-2/3 bg-gray-100 rounded-3xl shadow-sm p-6 text-gray-900">
+                <h3 class="font-serif text-xl font-semibold mb-4">Bezorginformatie</h3>
 
                     <p class="mb-3"><strong>Bezorgdagen en steden:</strong></p>
                     <ul class="mb-4 text-gray-800">
@@ -80,8 +80,8 @@
                 </aside>
 
                 {{-- Rechter kader: Postcode check formulier --}}
-                <section class="w-1/3 bg-gray-100 rounded-3xl shadow-sm p-4 text-gray-900">
-                    <form method="GET" action="{{ route('products.index') }}" class="space-y-4" novalidate>
+                <section class="w-full lg:w-1/3 bg-gray-100 rounded-3xl shadow-sm p-4 text-gray-900">
+                <form method="GET" action="{{ route('products.index') }}" class="space-y-4" novalidate>
                         <input type="hidden" name="delivery_method" value="bezorgen">
 
                         <div class="flex flex-col space-y-3">

@@ -21,6 +21,7 @@
             font-family: 'Playfair Display', serif;
         }
     </style>
+    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <body class="bg-white text-gray-800 antialiased">
 {{-- Optioneel: Navigatie --}}

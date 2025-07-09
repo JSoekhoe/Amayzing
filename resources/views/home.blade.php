@@ -18,7 +18,7 @@
         <div class="container mx-auto px-6 lg:px-24">
             <h2 class="text-3xl font-bold text-gray-800 mb-6">aMayzing</h2>
             <p class="text-lg text-gray-700 mb-6 leading-relaxed">
-                Mijn liefde voor bakken begon toen ik veertien jaar was en mijn eerste bijbaan in een bakkerij vond. Na zeven jaar ervaring in luxe hotels in Amsterdam en een inspirerende tijd in Dubai, ben ik klaar om die passie met u te delen.
+                Mijn liefde voor bakken begon toen ik veertien jaar was en mijn eerste bijbaan in een bakkerij vond. Na tien jaar ervaring in luxe hotels in Amsterdam en een inspirerende tijd in Dubai, ben ik klaar om die passie met u te delen.
             <p class="text-lg text-gray-700 leading-relaxed">
                 Bij aMayzing draait het om exclusieve, luxe creaties die uw verwachtingen overtreffen. Elke pastry maak ik met zorg, vakmanschap en oog voor detail. Hieronder vertel ik graag wat meer over de mogelijkheden.
             </p>

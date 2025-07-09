@@ -20,7 +20,7 @@
                     </a>
 
                     <a href="{{ route('admin.products.index') }}"
-                       class="block bg-gray-700 text-white text-lg px-6 py-4 rounded-xl hover:bg-gray-600 transition shadow text-center font-medium">
+                       class="block bg-gray-900 text-white text-lg px-6 py-4 rounded-xl hover:bg-gray-800 transition shadow text-center font-medium">
                         🧁 Producten beheren
                     </a>
                 </div>
