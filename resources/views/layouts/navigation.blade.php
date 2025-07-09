@@ -14,7 +14,7 @@
             </div>
 
             {{-- Logo gecentreerd --}}
-            <div class="flex justify-center w-full absolute inset-x-0 z-10 pointer-events-none">
+            <div class="flex justify-center w-full absolute inset-x-0 z-20 pointer-events-none">
                 <a href="{{ route('home') }}" class="text-2xl font-semibold font-serif text-gray-800 tracking-tight pointer-events-auto">
                     aMayzing
                 </a>
