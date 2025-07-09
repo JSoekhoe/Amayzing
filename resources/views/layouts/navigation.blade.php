@@ -2,8 +2,14 @@
     <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div class="relative flex justify-between items-center h-20">
 
+            <div class="flex justify-center w-full absolute inset-x-0 z-10 pointer-events-none">
+                <a href="{{ route('home') }}" class="text-2xl font-semibold font-serif text-gray-800 tracking-tight pointer-events-auto">
+                    aMayzing
+                </a>
+            </div>
+
             {{-- Navigatie links - links uitgelijnd --}}
-            <div class="hidden md:flex items-center space-x-6 absolute left-0 z-20">
+            <div class="hidden md:flex items-center space-x-6 z-20">
                 <x-nav-link :href="route('home')" :active="request()->routeIs('home')">Home</x-nav-link>
                 <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">Producten</x-nav-link>
                 <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.index')">Winkelwagen</x-nav-link>
@@ -13,15 +19,8 @@
                 @endauth
             </div>
 
-            {{-- Logo gecentreerd --}}
-            <div class="flex justify-center w-full absolute inset-x-0 z-20 pointer-events-none">
-                <a href="{{ route('home') }}" class="text-2xl font-semibold font-serif text-gray-800 tracking-tight pointer-events-auto">
-                    aMayzing
-                </a>
-            </div>
-
             {{-- Auth knoppen - rechts uitgelijnd --}}
-            <div class="hidden md:flex items-center space-x-6 absolute right-0 z-20 text-sm">
+            <div class="hidden md:flex items-center space-x-6 z-20 text-sm">
                 @guest
                     <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Inloggen</a>
 {{--                    <a href="{{ route('register') }}" class="text-gray-600 hover:text-gray-900">Registreren</a>--}}
