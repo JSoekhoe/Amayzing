@@ -1,16 +1,16 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-200 font-light">
     <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div class="relative flex items-center h-20 justify-between">
+        <div class="relative flex items-center h-20 justify-between w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
 
-            {{-- Logo --}}
-            <div class="flex-shrink-0 mx-auto md:mx-0 md:mr-auto">
+            {{-- Logo links --}}
+            <div class="flex-shrink-0">
                 <a href="{{ route('home') }}" class="text-2xl font-semibold font-serif text-gray-800 tracking-tight">
                     aMayzing
                 </a>
             </div>
 
-            {{-- Navigatie in het midden (alleen vanaf md) --}}
-            <div class="hidden md:flex space-x-6 mx-auto z-20">
+            {{-- Nav in het midden --}}
+            <div class="hidden md:flex space-x-6 absolute left-1/2 transform -translate-x-1/2">
                 <x-nav-link :href="route('home')" :active="request()->routeIs('home')">Home</x-nav-link>
                 <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">Producten</x-nav-link>
                 <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.index')">Winkelwagen</x-nav-link>
@@ -21,7 +21,7 @@
             </div>
 
             {{-- Auth knoppen rechts --}}
-            <div class="hidden md:flex items-center space-x-6 z-20 text-sm">
+            <div class="hidden md:flex items-center space-x-6 text-sm">
                 @guest
                     <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Inloggen</a>
                 @endguest
