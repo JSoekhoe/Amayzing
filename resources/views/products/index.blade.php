@@ -141,7 +141,8 @@
                     @if ($product->image)
                         <img src="{{ asset('storage/' . $product->image) }}"
                              alt="{{ $product->name }}"
-                             class="rounded-xl mb-4 max-h-48 w-full object-cover">
+                             class="rounded-xl mb-4 w-full aspect-square object-cover">
+
                     @else
                         <img src="{{ asset('images/placeholder.jpg') }}"
                              alt="Geen afbeelding beschikbaar"
