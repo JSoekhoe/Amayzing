@@ -2,11 +2,12 @@
     <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div class="relative flex justify-between items-center h-20">
 
-            <div class="flex justify-center absolute left-1/2 transform -translate-x-1/2 z-10 pointer-events-none" style="width: max-content;">
-            <a href="{{ route('home') }}" class="text-2xl font-semibold font-serif text-gray-800 tracking-tight pointer-events-auto">
+            <div class="absolute z-10 pointer-events-none left-1/2 transform -translate-x-1/2" style="width: max-content;">
+                <a href="{{ route('home') }}" class="text-2xl font-semibold font-serif text-gray-800 tracking-tight pointer-events-auto">
                     aMayzing
                 </a>
             </div>
+
 
             {{-- Navigatie links - links uitgelijnd --}}
             <div class="hidden md:flex items-center space-x-6 z-20">
