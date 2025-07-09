@@ -3,7 +3,7 @@
         <div class="relative flex justify-between items-center h-20">
 
             {{-- Navigatie links - links uitgelijnd --}}
-            <div class="hidden md:flex items-center space-x-10 absolute left-1 z-20">
+            <div class="hidden md:flex items-center space-x-6 absolute left-0 z-20">
                 <x-nav-link :href="route('home')" :active="request()->routeIs('home')">Home</x-nav-link>
                 <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">Producten</x-nav-link>
                 <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.index')">Winkelwagen</x-nav-link>
