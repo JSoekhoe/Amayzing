@@ -10,34 +10,36 @@
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f7f6f4;
-            color: #1f1f1f;
+            background-color: #f4f4f5;
+            color: #333333;
             padding: 2rem 0;
         }
         .container {
             max-width: 600px;
-            background: #fff;
+            background: #ffffff;
             margin: 0 auto;
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 2rem 3rem;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #dddddd;
         }
         h1 {
             font-weight: 700;
-            color: #386641;
+            color: #4a4a4a;
             font-size: 1.8rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
         h2 {
             font-weight: 600;
-            font-size: 1.25rem;
-            color: #3a3a3a;
+            font-size: 1.3rem;
+            color: #5e5e5e;
             margin-top: 2.5rem;
             margin-bottom: 1rem;
         }
         p {
             line-height: 1.6;
             margin-bottom: 1rem;
+            color: #555555;
         }
         ul {
             list-style: none;
@@ -47,20 +49,34 @@
         li {
             margin-bottom: 0.7rem;
             font-size: 1rem;
-            color: #2e2e2e;
+            color: #444444;
         }
         strong {
-            color: #1f1f1f;
+            color: #222222;
         }
         hr {
             border: none;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid #e2e2e2;
             margin: 2rem 0;
         }
         .footer {
             font-size: 0.9rem;
-            color: #5a5a5a;
+            color: #777777;
             line-height: 1.4;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 1px solid #e2e2e2;
+            padding-top: 1.5rem;
+            font-style: italic;
+        }
+        a {
+            color: #555555;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+        a:hover {
+            border-bottom: 1px solid #999999;
         }
     </style>
 </head>

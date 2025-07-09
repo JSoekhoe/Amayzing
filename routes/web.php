@@ -18,7 +18,9 @@ use App\Http\Controllers\{
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Dashboard (alleen voor ingelogde en geverifieerde gebruikers)
-Route::get('/dashboard', fn() => view('dashboard'))->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', fn() => view('dashboard'))
+    ->middleware(['auth', 'verified', 'is_admin'])
+    ->name('dashboard');
 
 // Winkelwagen
 Route::prefix('cart')->group(function () {
