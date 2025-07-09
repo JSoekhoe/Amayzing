@@ -139,7 +139,7 @@
                 <article class="bg-white rounded-3xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition">
                     {{-- Productfoto --}}
                     @if ($product->image)
-                        <<img src="{{ asset('storage/' . $product->image) }}"
+                        <img src="{{ asset('storage/' . $product->image) }}"
                               alt="{{ $product->name }}"
                               class="rounded-xl mb-4 max-h-32 w-full object-contain bg-white">
                     @else
