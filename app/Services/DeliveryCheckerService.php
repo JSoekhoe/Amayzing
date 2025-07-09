@@ -115,12 +115,12 @@ class DeliveryCheckerService
             return $result;
         }
 
-//        // 6. Controleer besteltijd (deadline)
-//        $lastOrderDeadline = $orderForDay->copy()->subDay()->setTimeFromTimeString(config('delivery.last_order_time'));
-//        if ($now->gt($lastOrderDeadline)) {
-//        $result->message = "Bezorging voor <strong>morgen</strong> is niet meer mogelijk in " . ucfirst($nearestCityName) . "<br>Bestel vóór <strong>" . config('delivery.last_order_time') . "</strong> uur de avond.";
-//            return $result;
-//        }
+        // 6. Controleer besteltijd (deadline)
+        $lastOrderDeadline = $orderForDay->copy()->subDay()->setTimeFromTimeString(config('delivery.last_order_time'));
+        if ($now->gt($lastOrderDeadline)) {
+        $result->message = "Bezorging voor <strong>morgen</strong> is niet meer mogelijk in " . ucfirst($nearestCityName) . "<br>Bestel vóór <strong>" . config('delivery.last_order_time') . "</strong> uur de avond.";
+            return $result;
+        }
 
         // 7. Bezorging toegestaan
         $straat = $geo['straat'] ?? '';

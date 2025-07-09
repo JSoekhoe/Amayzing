@@ -27,11 +27,11 @@ return [
             'delivery_day' => 'sunday',
             'delivery_time' => 'vanaf 11:00 uur',
         ],
-        'almere' => [
-            'center' => ['lat' => 52.37527, 'lng' => 5.21933],
-            'delivery_day' => 'tuesday',
-            'delivery_time' => 'vanaf 14:00',
-        ],
+//        'almere' => [
+//            'center' => ['lat' => 52.37527, 'lng' => 5.21933],
+//            'delivery_day' => 'tuesday',
+//            'delivery_time' => 'vanaf 14:00',
+//        ],
     ],
 
     'max_distance_km' => 10,
@@ -41,7 +41,7 @@ return [
 
     'pickup' => [
         'address' => 'Centrum van',
-        'opening_hours' => 'maandag t/m zaterdag, 10:00 - 18:00 uur',
+        'opening_hours' => 'maandag t/m zaterdag, 12:00 - 17:00 uur',
         'message' => '🛍️ Plan je afhaalmoment zelf in binnen onze openingstijden',
     ],
 ];
