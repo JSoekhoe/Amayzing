@@ -5,14 +5,29 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
-
+use Carbon\Carbon;
 class OrderAdminController extends Controller
 {
+
     public function index()
     {
-        $orders = Order::orderByDesc('created_at')->paginate(15);
-        return view('admin.orders.index', compact('orders'));
+        $today = Carbon::today()->toDateString();
+
+        // Afhalen
+        $pickupOrders = Order::where('type', 'afhalen')
+            ->orderByRaw("CASE WHEN pickup_date = ? THEN 0 ELSE 1 END", [$today])
+            ->orderBy('pickup_date', 'asc')
+            ->get();
+
+        // Bezorgen
+        $deliveryOrders = Order::where('type', 'bezorgen')
+            ->orderByRaw("CASE WHEN delivery_date = ? THEN 0 ELSE 1 END", [$today])
+            ->orderBy('delivery_date', 'asc')
+            ->get();
+
+        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders'));
     }
+
 
     public function show(Order $order)
     {

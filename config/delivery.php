@@ -37,6 +37,8 @@ return [
     'max_distance_km' => 10,
 
     'last_order_time' => '22:00',
+    'weekday_start_time' => '14:00',
+    'weekend_start_time' => '11:00',
     'delivery_end_time' => '21:30',
 
     'pickup' => [

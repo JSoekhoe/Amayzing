@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('addition')->nullable();
             $table->enum('type', ['afhalen', 'bezorgen']);
             $table->time('pickup_time')->nullable();
+            $table->date('pickup_date')->nullable();
+            $table->date('delivery_date')->nullable();
             $table->decimal('total_price', 8, 2);
             $table->text('note')->nullable();
             $table->string('payment_id')->nullable();

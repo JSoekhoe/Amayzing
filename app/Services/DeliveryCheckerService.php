@@ -28,6 +28,16 @@ class DeliveryCheckerService
             'pickupUrl' => $pickupUrl,
         ];
 
+        $dayTranslations = [
+            'monday' => 'maandag',
+            'tuesday' => 'dinsdag',
+            'wednesday' => 'woensdag',
+            'thursday' => 'donderdag',
+            'friday' => 'vrijdag',
+            'saturday' => 'zaterdag',
+            'sunday' => 'zondag',
+        ];
+
         // Als het om afhalen gaat, dan geen check, direct toegestaan
         if ($deliveryMethod === 'afhalen') {
             $result->allowed = true;
@@ -75,54 +85,68 @@ class DeliveryCheckerService
         $lat = $geo['lat'];
         $lng = $geo['lng'];
 
-
-        // 4. Bepaal leverdatum (morgen)
-        Carbon::setLocale('nl');
-        $now = Carbon::now();
-        $orderForDay = $now->copy()->addDay();
-
-        $orderWeekdayEn = strtolower($orderForDay->format('l'));
-        $orderWeekdayNl = ucfirst($orderForDay->translatedFormat('l'));
-
-        // 5. Check afstand tot bezorggebieden
+        // 4. Config ophalen
         $cities = config('delivery.cities');
         $maxDistance = config('delivery.max_distance_km', 10);
 
-        $withinCity = false;
+        // 5. Zoek dichtstbijzijnde stad op basis van afstand (zonder dagfilter)
         $nearestCityName = null;
         $nearestCityCenter = null;
         $nearestDistance = INF;
 
         foreach ($cities as $city => $info) {
-            if (strtolower($info['delivery_day']) !== $orderWeekdayEn) {
-                continue;
-            }
-
             $distance = $this->haversineGreatCircleDistance($lat, $lng, $info['center']['lat'], $info['center']['lng']);
             if ($distance < $nearestDistance) {
                 $nearestDistance = $distance;
                 $nearestCityName = $city;
                 $nearestCityCenter = $info;
             }
+        }
 
-            if ($distance <= $maxDistance) {
-                $withinCity = true;
+        // Check of binnen max afstand
+        if ($nearestDistance > $maxDistance) {
+            $result->message = 'Helaas, bezorging is niet beschikbaar op dit adres voor levering.';
+            return $result;
+        }
+
+        // 6. Bepaal leverdagen (altijd als array)
+        $deliveryDays = (array) ($nearestCityCenter['delivery_day'] ?? []);
+        $deliveryDays = array_map('strtolower', $deliveryDays);
+
+        Carbon::setLocale('nl');
+        $now = Carbon::now();
+
+        // 7. Genereer beschikbare leverdata in komende 2 maanden voor deze dagen
+        $availableDates = collect(range(0, 60))
+            ->map(fn($i) => $now->copy()->addDays($i))
+            ->filter(fn($date) => in_array(strtolower($date->format('l')), $deliveryDays))
+            ->filter(fn($date) => $date->isAfter($now)) // alleen toekomst
+            ->values()
+            ->map(fn($date) => [
+                'iso' => $date->format('Y-m-d'),
+                'label' => $date->translatedFormat('l j F Y'),
+            ]);
+
+        $result->availableDates = $availableDates;
+
+        // 8. Check of levering voor morgen mogelijk is
+        $tomorrow = $now->copy()->addDay();
+        $canDeliverTomorrow = $availableDates->first() && $availableDates->first()['iso'] === $tomorrow->format('Y-m-d');
+
+        if ($canDeliverTomorrow) {
+            $deadline = $tomorrow->copy()->subDay()->setTimeFromTimeString(config('delivery.last_order_time'));
+            if ($now->gt($deadline)) {
+                $result->message = "Bezorging voor <strong>morgen</strong> is niet meer mogelijk in " . ucfirst($nearestCityName) .
+                    ". Kies een andere datum hieronder.<br>Bestel vóór <strong>" . config('delivery.last_order_time') . "</strong> uur de avond ervoor.";
             }
+        } else {
+            $daysFormatted = implode(', ', array_map(function($d) use ($dayTranslations) {
+                return $dayTranslations[$d] ?? ucfirst($d);
+            }, $deliveryDays));
+            $result->message = "Bezorging is mogelijk in " . ucfirst($nearestCityName) . " op de volgende dag(en): {$daysFormatted}. Kies een bezorgdatum hieronder.";
         }
 
-        if (!$withinCity || !$nearestCityCenter) {
-            $result->message = 'Helaas, bezorging is niet beschikbaar op dit adres voor levering op ' . $orderWeekdayNl ;
-            return $result;
-        }
-
-        // 6. Controleer besteltijd (deadline)
-        $lastOrderDeadline = $orderForDay->copy()->subDay()->setTimeFromTimeString(config('delivery.last_order_time'));
-        if ($now->gt($lastOrderDeadline)) {
-        $result->message = "Bezorging voor <strong>morgen</strong> is niet meer mogelijk in " . ucfirst($nearestCityName) . "<br>Bestel vóór <strong>" . config('delivery.last_order_time') . "</strong> uur de avond.";
-            return $result;
-        }
-
-        // 7. Bezorging toegestaan
+        // 9. Bezorging toegestaan: adres info
         $straat = $geo['straat'] ?? '';
         $woonplaats = $geo['woonplaats'] ?? ucfirst($nearestCityName);
         $postcode = $geo['postcode'] ?? $formattedPostcode;
@@ -132,12 +156,10 @@ class DeliveryCheckerService
 
         $result->allowed = true;
         $result->selectedDeliveryMethod = 'bezorgen';
-        $result->message = "Bezorging is mogelijk op het volgende adres:<br><strong>{$adresVolledig}</strong><br>" .
+        $result->message .= "<br>Op het volgende adres:<br><strong>{$adresVolledig}</strong><br>" .
             "Tussen <strong>" . $nearestCityCenter['delivery_time'] . "</strong> en <strong>" . config('delivery.delivery_end_time') . "</strong> uur.";
         $result->address = $geo['formatted_address'] ?? $adresVolledig;
         $result->street = $straat;
-
-
 
         return $result;
     }

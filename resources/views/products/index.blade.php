@@ -74,7 +74,7 @@
                     <p class="mb-3 text-gray-800">
                         We bezorgen binnen een straal van <strong>{{ $radiusKm }} km</strong> vanaf het centrum van elke stad.
                         Bestellen kan tot <strong>{{ $orderCutoff }}</strong> de avond voor de bezorging.
-                        Bezorging vindt plaats vanaf <strong>{{ $deliveryStartWeekday }}</strong> op weekdagen, en vanaf <strong>{{ $deliveryStartWeekend }}</strong> in het weekend.
+                        Bezorging vindt plaats <strong>{{ $deliveryStartWeekday }}</strong> op weekdagen, en <strong>{{ $deliveryStartWeekend }}</strong> in het weekend.
                         Bezorging loopt tot uiterlijk <strong>{{ $deliveryEnd }}</strong>.
                     </p>
                 </aside>

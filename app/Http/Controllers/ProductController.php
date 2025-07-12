@@ -63,10 +63,10 @@ class ProductController extends Controller
         $pickupMessage = config('pickup.message');
 
         $weekdayCities = array_filter($cities, fn($city) =>
-        in_array(strtolower($city['delivery_day']), ['monday','tuesday','wednesday','thursday','friday'])
+        in_array(strtolower($city['delivery_day']), ['maandag','dinsdag','woensdag','donderdag','vrijdag'])
         );
         $weekendCities = array_filter($cities, fn($city) =>
-        in_array(strtolower($city['delivery_day']), ['saturday','sunday'])
+        in_array(strtolower($city['delivery_day']), ['zaterdag','zondag'])
         );
 
         $deliveryStartWeekday = count($weekdayCities) ? reset($weekdayCities)['delivery_time'] : '-';

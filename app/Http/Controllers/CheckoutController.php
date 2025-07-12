@@ -58,7 +58,40 @@ class CheckoutController extends Controller
             $timeSlots = $this->generateTimeSlots($open, $close);
         }
 
+        $availablePickupDates = [];
+        $today = Carbon::now();
+        $pickupLocationHours = $pickupLocationsConfig[$selectedPickupLocation]['hours'] ?? [];
+
+        for ($i = 0; $i < 14; $i++) {
+            $date = $today->copy()->addDays($i);
+            $dayName = strtolower($date->locale('nl')->dayName);
+
+            if (isset($pickupLocationHours[$dayName])) {
+                $hours = $pickupLocationHours[$dayName];
+                if (!empty($hours['open']) && $hours['open'] !== $hours['close']) {
+                    $availablePickupDates[] = $date->format('Y-m-d');
+                }
+            }
+        }
+
+
         $minPickupTime = in_array($dayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
+
+        $availableDeliveryDates = [];
+
+        if ($deliveryMethod === 'bezorgen') {
+            $checker = new \App\Services\DeliveryCheckerService();
+            $deliveryCheck = $checker->check(
+                session('postcode'),
+                session('housenumber'),
+                session('addition'),
+                'bezorgen'
+            );
+
+            if ($deliveryCheck->allowed) {
+                $availableDeliveryDates = $deliveryCheck->availableDates ?? [];
+            }
+        }
 
         return view('checkout.index', [
             'cart' => $cart,
@@ -73,6 +106,8 @@ class CheckoutController extends Controller
             'postcode' => session('postcode'),
             'housenumber' => session('housenumber'),
             'addition' => session('addition'),
+            'availableDeliveryDates' => $availableDeliveryDates,
+            'availablePickupDates' => $availablePickupDates,
         ]);
 
     }
@@ -119,6 +154,8 @@ class CheckoutController extends Controller
             'postcode' => 'required_if:type,bezorgen|string|max:10',
             'housenumber' => 'required_if:type,bezorgen|string|max:10',
             'addition' => 'nullable|string|max:10',
+            'delivery_date' => 'required_if:type,bezorgen|date_format:Y-m-d',
+            'pickup_date' => 'required_if:type,afhalen|date|after_or_equal:today',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -128,7 +165,7 @@ class CheckoutController extends Controller
 
         $validator->after(function ($validator) use ($cart, $products, $request) {
             if ($request->type === 'afhalen') {
-                $dayName = strtolower(now()->locale('nl')->dayName);
+                $dayName = strtolower(Carbon::parse($request->pickup_date)->locale('nl')->dayName);
                 $minPickupTime = in_array($dayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
 
                 try {
@@ -162,6 +199,14 @@ class CheckoutController extends Controller
                     }
                 } else {
                     $validator->errors()->add('pickup_location', "Ongeldige afhaallocatie.");
+                }
+
+                // Check of de locatie op de gekozen pickup_date open is
+                if (isset($pickupLocations[$location])) {
+                    $hours = $pickupLocations[$location]['hours'][$dayName] ?? null;
+                    if (!$hours || empty($hours['open']) || $hours['open'] === $hours['close']) {
+                        $validator->errors()->add('pickup_date', "De locatie is op {$request->pickup_date} gesloten.");
+                    }
                 }
             }
 
@@ -216,6 +261,7 @@ class CheckoutController extends Controller
                 'pickup_time' => $request->type === 'afhalen' ? $request->pickup_time : null,
                 'pickup_location' => $request->type === 'afhalen' ? $request->pickup_location : null,
                 'total_price' => $grandTotal,
+                'delivery_date' => $request->type === 'bezorgen' ? $request->delivery_date : null,
             ]);
 
             foreach ($cart as $productId => $types) {
@@ -229,7 +275,6 @@ class CheckoutController extends Controller
                         'quantity' => $data['quantity'],
                         'price' => $product->price,
                         'type' => $type,
-
                     ]);
 
                     if ($type === 'afhalen') {

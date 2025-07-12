@@ -104,6 +104,28 @@
                     </div>
                 @endforeach
             @endif
+            @if($deliveryMethod === 'bezorgen' && !empty($availableDeliveryDates))
+                <div>
+                    <label for="delivery_date" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Bezorgdatum</label>
+                    <select
+                        name="delivery_date"
+                        id="delivery_date"
+                        required
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('delivery_date') border-red-500 @enderror"
+                    >
+                        <option value="" disabled {{ old('delivery_date') ? '' : 'selected' }}>Kies een datum</option>
+                        @foreach($availableDeliveryDates as $date)
+                            <option value="{{ $date['iso'] }}" {{ old('delivery_date') == $date['iso'] ? 'selected' : '' }}>
+                                {{ $date['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('delivery_date')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endif
+
 
             {{-- Afhalen --}}
             @if($currentDeliveryMethod === 'afhalen')
@@ -126,7 +148,20 @@
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-
+                <div>
+                    <label for="pickup_date" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaaldatum</label>
+                        <select name="pickup_date" id="pickup_date" required
+                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition">
+                            @foreach ($availablePickupDates as $date)
+                                <option value="{{ $date }}" {{ old('pickup_date') == $date ? 'selected' : '' }}>
+                                    {{ \Carbon\Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY') }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @error('pickup_date')
+                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
                 <div>
                     <label for="pickup_time" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaaltijd</label>
                     <select
@@ -157,4 +192,4 @@
         </form>
     </div>
 </x-app-layout>
- q
+
