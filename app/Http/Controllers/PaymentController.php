@@ -46,10 +46,16 @@ class PaymentController extends Controller
                     "order_id" => $order->id,
                 ],
             ]);
+
             \Log::info('Mollie Payment aangemaakt', [
                 'payment_id' => $payment->id,
                 'order_id' => $order->id]);
+
             $order->update(['payment_id' => $payment->id]);
+
+            // Mail direct versturen
+            Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
+            Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
 
             return response()->json([
                 'checkoutUrl' => $payment->getCheckoutUrl(),
@@ -87,10 +93,10 @@ class PaymentController extends Controller
                 ]);
 
                 // Verstuur e-mail
-                Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
-                Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
+//                Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
+//                Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
 
-                \Log::info("Mollie betaling voltooid en e-mails verzonden voor order {$order->id}");
+//                \Log::info("Mollie betaling voltooid en e-mails verzonden voor order {$order->id}");
             }
 
             return response('OK', 200);

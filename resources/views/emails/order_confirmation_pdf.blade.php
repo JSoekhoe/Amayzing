@@ -83,12 +83,22 @@
 
     <h2>Bestelde producten</h2>
     <ul>
+        @php $totaal = 0; @endphp
         @foreach ($order->items as $item)
-            <li>{{ $item->quantity }} × {{ $item->product->name }} – €{{ number_format($item->product->price * $item->quantity, 2, ',', '.') }}</li>
+            @php
+                $product = $item->product;
+                $prijs = $product ? $product->price : 0;
+                $subtotaal = $prijs * $item->quantity;
+                $totaal += $subtotaal;
+            @endphp
+            <li>
+                {{ $item->quantity }} × {{ $product->name ?? 'Product verwijderd' }} –
+                €{{ number_format($subtotaal, 2, ',', '.') }}
+            </li>
         @endforeach
     </ul>
     <hr>
-    <p><strong>Totaal:</strong> €{{ number_format($order->items->sum(fn($item) => $item->product->price * $item->quantity), 2, ',', '.') }}</p>
+    <p><strong>Totaal:</strong> €{{ number_format($totaal, 2, ',', '.') }}</p>
 
     <div class="footer">
         <p>Heb je vragen? Neem contact met ons op via Amayzingpastry@gmail.com.</p>

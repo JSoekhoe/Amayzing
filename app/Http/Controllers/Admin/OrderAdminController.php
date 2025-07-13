@@ -13,20 +13,21 @@ class OrderAdminController extends Controller
     {
         $today = Carbon::today()->toDateString();
 
-        // Afhalen
-        $pickupOrders = Order::where('type', 'afhalen')
+        $pickupOrders = Order::with('items.product')
+            ->where('type', 'afhalen')
             ->orderByRaw("CASE WHEN pickup_date = ? THEN 0 ELSE 1 END", [$today])
             ->orderBy('pickup_date', 'asc')
             ->get();
 
-        // Bezorgen
-        $deliveryOrders = Order::where('type', 'bezorgen')
+        $deliveryOrders = Order::with('items.product')
+            ->where('type', 'bezorgen')
             ->orderByRaw("CASE WHEN delivery_date = ? THEN 0 ELSE 1 END", [$today])
             ->orderBy('delivery_date', 'asc')
             ->get();
 
         return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders'));
     }
+
 
 
     public function show(Order $order)

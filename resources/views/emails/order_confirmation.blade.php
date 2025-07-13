@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <title>Orderbevestiging - aMayzing Pastry</title>
     <style>
-        /* Basis reset */
         body, p, h1, h2, ul, li {
             margin: 0; padding: 0;
         }
@@ -91,28 +90,38 @@
         <li><strong>Email:</strong> {{ $order->email }}</li>
         <li><strong>Telefoon:</strong> {{ $order->phone }}</li>
         <li><strong>Type bestelling:</strong> {{ ucfirst($order->type) }}</li>
+
         @if ($order->type === 'bezorgen')
-            <li><strong>Adres:</strong> {{ $order->address ?? '' }} {{ $order->housenumber }} {{ $order->addition }}</li>
+            <li><strong>Adres:</strong>
+                {{ $order->address ?? $order->straat ?? '' }}
+                {{ $order->housenumber }} {{ $order->addition }}
+            </li>
             <li><strong>Postcode:</strong> {{ $order->postcode }}</li>
         @endif
+
+        <li><strong>Datum:</strong> {{ $order->created_at->format('d-m-Y H:i') }}</li>
     </ul>
 
     <h2>Bestelde producten</h2>
     <ul>
-        @if ($order->items && $order->items->count() > 0)
+        @php $totaal = 0; @endphp
+        @if ($order->items && $order->items->count())
             @foreach ($order->items as $item)
                 @php
-                    $productName = optional($item->product)->name ?? 'Onbekend product';
-                    $lineTotal = number_format($item->price * $item->quantity, 2, ',', '.');
+                    $product = optional($item->product);
+                    $name = $product->name ?? 'Onbekend product';
+                    $price = $item->price ?? $product->price ?? 0;
+                    $subtotaal = $price * $item->quantity;
+                    $totaal += $subtotaal;
                 @endphp
-                <li>{{ $productName }} × {{ $item->quantity }} — €{{ $lineTotal }}</li>
+                <li>{{ $name }} × {{ $item->quantity }} — €{{ number_format($subtotaal, 2, ',', '.') }}</li>
             @endforeach
         @else
             <li>Geen bestelde producten gevonden.</li>
         @endif
     </ul>
 
-    <p><strong>Totaalprijs:</strong> €{{ number_format($order->total_price, 2, ',', '.') }}</p>
+    <p><strong>Totaalprijs:</strong> €{{ number_format($order->total_price ?? $totaal, 2, ',', '.') }}</p>
 
     <hr>
 
