@@ -106,5 +106,13 @@ class PaymentController extends Controller
             return response('Webhook error', 500);
         }
     }
+    public function thankyou(Request $request)
+    {
+        $orderId = $request->query('orderId');
+        $order = \App\Models\Order::findOrFail($orderId);
+
+        return view('checkout.thankyou', compact('orderId', 'order'));
+
+    }
 
 }

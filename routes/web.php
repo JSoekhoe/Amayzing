@@ -42,7 +42,8 @@ Route::post('/payment/process', [PaymentController::class, 'process'])->name('pa
 Route::get('/payment/checkout/{orderId}', [PaymentController::class, 'paymentCheckout'])->name('payment.checkout');
 
 // Mollie webhook endpoint voor betaling updates
-Route::post('/webhook/mollie', [PaymentController::class, 'handle'])->name('mollie.webhook');
+Route::post('/webhook/mollie', [PaymentController::class, 'webhook'])->name('mollie.webhook');
+
 Route::get('/thankyou/{orderId}', [PaymentController::class, 'thankyou'])->name('thankyou');
 
 // Profielbeheer (alleen voor ingelogde gebruikers)
