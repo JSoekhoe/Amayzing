@@ -54,8 +54,8 @@ class PaymentController extends Controller
             $order->update(['payment_id' => $payment->id]);
 
             // Mail direct versturen
-            Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
-            Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
+//            Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
+//            Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
 
             return response()->json([
                 'checkoutUrl' => $payment->getCheckoutUrl(),
