@@ -152,6 +152,11 @@
                     <h3 class="font-serif text-2xl text-gray-900 mb-3">{{ $product->name }}</h3>
                     <p class="text-gray-800 font-semibold mb-4 text-lg">€{{ number_format($product->price, 2, ',', '.') }}</p>
 
+                    {{-- Omschrijving --}}
+                    @if(!empty($product->description))
+                        <p class="text-gray-700 mb-4">{{ $product->description }}</p>
+                    @endif
+
                     {{-- Voorraad en winkelwagen --}}
                     @if ($availableStock > 0)
                         <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-auto space-y-4">

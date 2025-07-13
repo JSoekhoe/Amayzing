@@ -86,17 +86,18 @@ class PaymentController extends Controller
             }
 
             if ($payment->isPaid() && !$order->paid_at) {
-                // Markeer als betaald
                 $order->update([
                     'paid_at' => now(),
-                    'status' => 'paid', // optioneel, als je een statuskolom hebt
+                    'status' => 'paid',
                 ]);
 
-                // Verstuur e-mail
-//                Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
-//                Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
+                \Log::info("Order #{$order->id} status bijgewerkt naar 'paid' en betaaldatum ingesteld.");
 
-//                \Log::info("Mollie betaling voltooid en e-mails verzonden voor order {$order->id}");
+                // Mail versturen
+                Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
+                Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
+
+                \Log::info("Order confirmation mails verzonden voor order #{$order->id}");
             }
 
             return response('OK', 200);

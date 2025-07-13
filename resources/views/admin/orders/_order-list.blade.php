@@ -28,15 +28,15 @@
                     <span class="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Vandaag</span>
                 @endif
             </p>
-            <p>
-                <strong>Betaald:</strong>
-                @if($order->paid_at)
-                    <span class="text-green-600 font-medium">Ja</span>
-                    <span class="text-gray-500 text-xs">({{ \Carbon\Carbon::parse($order->paid_at)->format('d-m-Y H:i') }})</span>
-                @else
-                    <span class="text-red-600 font-medium">Nee</span>
-                @endif
-            </p>
+{{--            <p>--}}
+{{--                <strong>Betaald:</strong>--}}
+{{--                @if($order->paid_at)--}}
+{{--                    <span class="text-green-600 font-medium">Ja</span>--}}
+{{--                    <span class="text-gray-500 text-xs">({{ \Carbon\Carbon::parse($order->paid_at)->format('d-m-Y H:i') }})</span>--}}
+{{--                @else--}}
+{{--                    <span class="text-red-600 font-medium">Nee</span>--}}
+{{--                @endif--}}
+{{--            </p>--}}
         </div>
 
         {{-- Acties --}}
