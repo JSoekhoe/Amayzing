@@ -108,11 +108,10 @@ class PaymentController extends Controller
     }
     public function thankyou(Request $request)
     {
-        $orderId = $request->query('orderId');
+        $orderId = $request->query('orderId'); // haalt orderId uit query string (zoals /thankyou?orderId=123)
         $order = \App\Models\Order::findOrFail($orderId);
 
         return view('checkout.thankyou', compact('orderId', 'order'));
-
     }
 
 }
