@@ -23,7 +23,7 @@
             <div class="hidden md:flex items-center space-x-6 text-sm">
                 @guest
                     <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Inloggen</a>
-                    <a href="{{ route('register') }}" class="text-gray-600 hover:text-gray-900">Registreren</a>
+{{--                    <a href="{{ route('register') }}" class="text-gray-600 hover:text-gray-900">Registreren</a>--}}
                 @endguest
 
                 @auth
@@ -75,7 +75,7 @@
 
             @guest
                 <a href="{{ route('login') }}" class="block text-gray-700 hover:text-gray-900">Inloggen</a>
-                <a href="{{ route('register') }}" class="block text-gray-700 hover:text-gray-900">Registreren</a>
+{{--                <a href="{{ route('register') }}" class="block text-gray-700 hover:text-gray-900">Registreren</a>--}}
             @endguest
 
             @auth
