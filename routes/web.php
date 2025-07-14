@@ -35,7 +35,7 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.in
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
 // Bedankpagina
-Route::get('/thank-you', [ThankYouController::class, 'index'])->name('thankyou');
+Route::get('/thankyou', [ThankYouController::class, 'index'])->name('thankyou');
 
 // Betaling
 Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
@@ -44,7 +44,7 @@ Route::get('/payment/checkout/{orderId}', [PaymentController::class, 'paymentChe
 // Mollie webhook endpoint voor betaling updates
 Route::post('/webhook/mollie', [PaymentController::class, 'webhook'])->name('mollie.webhook');
 
-Route::get('/thankyou/{orderId}', [PaymentController::class, 'thankyou'])->name('thankyou');
+//Route::get('/thankyou/{orderId}', [PaymentController::class, 'thankyou'])->name('thankyou');
 
 // Profielbeheer (alleen voor ingelogde gebruikers)
 Route::middleware('auth')->group(function () {

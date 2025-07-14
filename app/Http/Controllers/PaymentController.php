@@ -39,7 +39,7 @@ class PaymentController extends Controller
                     "value" => $amount,
                 ],
                 "description" => "Bestelling #{$order->id}",
-                "redirectUrl" => route('thankyou', ['orderId' => $order->id], true),
+                "redirectUrl" => route('thankyou', [], true),
                 "webhookUrl" => route('mollie.webhook', [], true),
 
                 "metadata" => [
