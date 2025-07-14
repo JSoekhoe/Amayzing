@@ -12,7 +12,7 @@
                     'donderdag' => ['open' => '12:00', 'close' => '17:00'],
                     'vrijdag' => ['open' => '12:00', 'close' => '17:00'],
                     'zaterdag' => ['open' => '12:00', 'close' => '17:00'],
-                    'zondag' => ['open' => '00:00', 'close' => '23:00'], // gesloten
+                    'zondag' => ['open' => '12:00', 'close' => '17:00'],
                 ],
             ],
         ],

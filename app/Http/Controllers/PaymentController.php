@@ -7,7 +7,6 @@ use App\Models\Order;
 use Mollie\Api\MollieApiClient;
 use Illuminate\Support\Facades\Mail;
 
-
 class PaymentController extends Controller
 {
     public function paymentCheckout($orderId)
@@ -39,9 +38,8 @@ class PaymentController extends Controller
                     "value" => $amount,
                 ],
                 "description" => "Bestelling #{$order->id}",
-                "redirectUrl" => route('thankyou', [], true),
+                "redirectUrl" => route('thankyou', ['orderId' => $order->id], true),
                 "webhookUrl" => route('mollie.webhook', [], true),
-
                 "metadata" => [
                     "order_id" => $order->id,
                 ],
@@ -49,11 +47,12 @@ class PaymentController extends Controller
 
             \Log::info('Mollie Payment aangemaakt', [
                 'payment_id' => $payment->id,
-                'order_id' => $order->id]);
+                'order_id' => $order->id,
+            ]);
 
             $order->update(['payment_id' => $payment->id]);
 
-            // Mail direct versturen
+            // Mail direct versturen (optioneel)
 //            Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
 //            Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
 
@@ -61,6 +60,7 @@ class PaymentController extends Controller
                 'checkoutUrl' => $payment->getCheckoutUrl(),
             ]);
         } catch (\Exception $e) {
+            \Log::error('Betaling kon niet worden aangemaakt: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Betaling kon niet worden aangemaakt: ' . $e->getMessage(),
             ], 500);
@@ -78,6 +78,8 @@ class PaymentController extends Controller
             $payment = $mollie->payments->get($paymentId);
             $orderId = $payment->metadata->order_id;
 
+            \Log::info("Webhook ontvangen voor payment ID: {$paymentId} met status: {$payment->status}");
+
             $order = Order::with('items.product')->find($orderId);
 
             if (!$order) {
@@ -85,19 +87,25 @@ class PaymentController extends Controller
                 return response('Order not found', 404);
             }
 
-            if ($payment->isPaid() && !$order->paid_at) {
-                $order->update([
+            if ($payment->status === 'paid' && !$order->paid_at) {
+                $updated = $order->update([
                     'paid_at' => now(),
                     'status' => 'paid',
                 ]);
 
-                \Log::info("Order #{$order->id} status bijgewerkt naar 'paid' en betaaldatum ingesteld.");
+                if ($updated) {
+                    \Log::info("Order #{$order->id} status bijgewerkt naar 'paid' en betaaldatum ingesteld.");
 
-                // Mail versturen
-                Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
-                Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
+                    // Mail versturen
+                    Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
+                    Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
 
-                \Log::info("Order confirmation mails verzonden voor order #{$order->id}");
+                    \Log::info("Order confirmation mails verzonden voor order #{$order->id}");
+                } else {
+                    \Log::warning("Order #{$order->id} kon niet worden bijgewerkt.");
+                }
+            } else {
+                \Log::info("Order #{$order->id} status niet bijgewerkt. Payment status: {$payment->status}, paid_at: {$order->paid_at}");
             }
 
             return response('OK', 200);
@@ -106,6 +114,7 @@ class PaymentController extends Controller
             return response('Webhook error', 500);
         }
     }
+
     public function thankyou(Request $request)
     {
         $orderId = $request->query('orderId'); // haalt orderId uit query string (zoals /thankyou?orderId=123)
@@ -113,5 +122,4 @@ class PaymentController extends Controller
 
         return view('checkout.thankyou', compact('orderId', 'order'));
     }
-
 }

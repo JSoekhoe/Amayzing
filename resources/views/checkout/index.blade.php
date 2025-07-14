@@ -129,67 +129,66 @@
 
             {{-- Afhalen --}}
             @if($currentDeliveryMethod === 'afhalen')
-                <div>
-                    <label for="pickup_location" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaallocatie</label>
-                    <select
-                        id="pickup_location"
-                        name="pickup_location"
-                        required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_location') border-red-500 @enderror"
-                    >
-                        <option value="" disabled {{ old('pickup_location') ? '' : 'selected' }}>Kies een locatie</option>
-                        @foreach($pickupLocations as $key => $location)
-                            <option value="{{ $key }}" {{ old('pickup_location') === $key ? 'selected' : '' }}>
-                                {{ $location }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('pickup_location')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label for="pickup_date" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaaldatum</label>
-                        <select name="pickup_date" id="pickup_date" required
-                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition">
-                            @foreach ($availablePickupDates as $date)
-                                <option value="{{ $date }}" {{ old('pickup_date') == $date ? 'selected' : '' }}>
-                                    {{ \Carbon\Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY') }}
-                                </option>
+                <div class="space-y-4">
+                    <div>
+                        <label for="pickup_location" class="block mb-1 font-semibold">Afhaallocatie</label>
+                        <select
+                            name="pickup_location"
+                            id="pickup_location"
+                            required
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_location') border-red-500 @enderror"
+                        >
+                            @foreach($pickupLocations as $key => $name)
+                                <option value="{{ $key }}" @if(old('pickup_location', $selectedPickupLocation) === $key) selected @endif>{{ $name }}</option>
                             @endforeach
                         </select>
-                    @error('pickup_date')
-                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label for="pickup_time" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Afhaaltijd</label>
-                    <select
-                        id="pickup_time"
-                        name="pickup_time"
-                        required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_time') border-red-500 @enderror"
-                    >
-                        <option value="" disabled {{ old('pickup_time') ? '' : 'selected' }}>Kies een tijdslot</option>
-                        @foreach($timeSlots as $slot)
-                            <option value="{{ $slot }}" {{ old('pickup_time') === $slot ? 'selected' : '' }}>
-                                {{ $slot }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('pickup_time')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                        @error('pickup_location')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="pickup_date" class="block mb-1 font-semibold">Afhaal datum</label>
+                        <select
+                            name="pickup_date"
+                            id="pickup_date"
+                            required
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_date') border-red-500 @enderror"
+                        >
+                            @foreach($availablePickupDates as $date)
+                                <option value="{{ $date }}" @if(old('pickup_date') === $date) selected @endif>{{ \Carbon\Carbon::parse($date)->translatedFormat('l d F Y') }}</option>
+                            @endforeach
+                        </select>
+                        @error('pickup_date')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="pickup_time" class="block mb-1 font-semibold">Afhaaltijd</label>
+                        <select
+                            name="pickup_time"
+                            id="pickup_time"
+                            required
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_time') border-red-500 @enderror"
+                        >
+                            @foreach($timeSlots as $slot)
+                                <option value="{{ $slot }}" @if(old('pickup_time') === $slot) selected @endif>{{ $slot }}</option>
+                            @endforeach
+                        </select>
+                        @error('pickup_time')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
             @endif
 
             <button
                 type="submit"
-                class="bg-gray-900 w-full mt-4 py-3 rounded-lg text-white text-lg font-semibold tracking-wide hover:bg-gray-800 transition"
+                class="bg-gray-900 w-full mt-6 py-3 rounded-lg text-white text-lg font-semibold tracking-wide hover:bg-gray-800 transition"
             >
                 Plaats bestelling
             </button>
         </form>
     </div>
 </x-app-layout>
-

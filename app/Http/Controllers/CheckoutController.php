@@ -44,41 +44,53 @@ class CheckoutController extends Controller
         $deliveryFee = ($deliveryMethod === 'bezorgen' && $total < 99) ? 5.50 : 0;
         $grandTotal = $total + $deliveryFee;
 
+        // Haal config pickup locaties op
         $pickupLocationsConfig = config('pickup.locations');
         $pickupLocations = collect($pickupLocationsConfig)->mapWithKeys(fn($location, $key) => [$key => $location['name']]);
         $selectedPickupLocation = old('pickup_location') ?? array_key_first($pickupLocations->toArray());
-        $dayName = strtolower(Carbon::now()->locale('nl')->dayName);
 
         $openingHours = $pickupLocationsConfig[$selectedPickupLocation]['hours'] ?? [];
-        $open = $openingHours[$dayName]['open'] ?? null;
-        $close = $openingHours[$dayName]['close'] ?? null;
 
-        $timeSlots = [];
-        if ($open && $close && $open !== $close) {
-            $timeSlots = $this->generateTimeSlots($open, $close);
-        }
-
-        $availablePickupDates = [];
         $today = Carbon::now();
-        $pickupLocationHours = $pickupLocationsConfig[$selectedPickupLocation]['hours'] ?? [];
 
+        // Beschikbare afhaaldagen (max 14 dagen vooruit) op basis van openingsuren config
+        $availablePickupDates = [];
         for ($i = 0; $i < 14; $i++) {
             $date = $today->copy()->addDays($i);
-            $dayName = strtolower($date->locale('nl')->dayName);
+            $dayNameLoop = strtolower($date->locale('nl')->dayName);
 
-            if (isset($pickupLocationHours[$dayName])) {
-                $hours = $pickupLocationHours[$dayName];
+            if (isset($openingHours[$dayNameLoop])) {
+                $hours = $openingHours[$dayNameLoop];
                 if (!empty($hours['open']) && $hours['open'] !== $hours['close']) {
                     $availablePickupDates[] = $date->format('Y-m-d');
                 }
             }
         }
 
+        // Kies de eerste beschikbare pickup date als default
+        $pickupDate = $availablePickupDates[0] ?? $today->format('Y-m-d');
+        $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
+        $dayNamePickup = strtolower($pickupDateCarbon->locale('nl')->dayName);
 
-        $minPickupTime = in_array($dayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
+        // Openingstijden voor de geselecteerde pickup date
+        $openingHoursPickupDay = $openingHours[$dayNamePickup] ?? null;
+
+        $open = $openingHoursPickupDay['open'] ?? null;
+        $close = $openingHoursPickupDay['close'] ?? null;
+
+        $timeSlots = [];
+        if ($open && $close && $open !== $close) {
+            $timeSlots = $this->generateTimeSlots($open, $close);
+        }
+
+        // Standaard pickup_time als eerste tijdslot, of null als gesloten
+        $pickupTime = $timeSlots[0] ?? null;
+
+        // Min pickup tijd op basis van huidige dag (optioneel, je kunt hier ook logica toepassen)
+        $currentDayName = strtolower($today->locale('nl')->dayName);
+        $minPickupTime = in_array($currentDayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
 
         $availableDeliveryDates = [];
-
         if ($deliveryMethod === 'bezorgen') {
             $checker = new \App\Services\DeliveryCheckerService();
             $deliveryCheck = $checker->check(
@@ -108,9 +120,14 @@ class CheckoutController extends Controller
             'addition' => session('addition'),
             'availableDeliveryDates' => $availableDeliveryDates,
             'availablePickupDates' => $availablePickupDates,
+            'selectedPickupLocation' => $selectedPickupLocation,
+            'selectedPickupDate' => $pickupDate,
+            'selectedPickupTime' => $pickupTime,
         ]);
-
     }
+
+
+
 
     private function generateTimeSlots($start, $end, $interval = 30)
     {
@@ -143,19 +160,22 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Je winkelwagen is leeg.');
         }
 
+        $pickupLocations = config('pickup.locations');
+        $pickupLocationKeys = array_keys($pickupLocations);
+
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => ['required', 'regex:/^(\+31|0)[1-9][0-9]{8}$/'],
             'type' => 'required|in:afhalen,bezorgen',
+            'pickup_location' => 'required_if:type,afhalen|in:' . implode(',', $pickupLocationKeys),
+            'pickup_date' => 'required_if:type,afhalen|date_format:Y-m-d|after_or_equal:today',
             'pickup_time' => 'required_if:type,afhalen|date_format:H:i',
-            'pickup_location' => 'required_if:type,afhalen|in:' . implode(',', array_keys(config('pickup.locations'))),
             'straat' => 'required_if:type,bezorgen|string|max:255',
             'postcode' => 'required_if:type,bezorgen|string|max:10',
             'housenumber' => 'required_if:type,bezorgen|string|max:10',
             'addition' => 'nullable|string|max:10',
             'delivery_date' => 'required_if:type,bezorgen|date_format:Y-m-d',
-            'pickup_date' => 'required_if:type,afhalen|date|after_or_equal:today',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -163,49 +183,60 @@ class CheckoutController extends Controller
         $productIds = array_keys($cart);
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-        $validator->after(function ($validator) use ($cart, $products, $request) {
+        $validator->after(function ($validator) use ($cart, $products, $request, $pickupLocations) {
             if ($request->type === 'afhalen') {
-                $dayName = strtolower(Carbon::parse($request->pickup_date)->locale('nl')->dayName);
-                $minPickupTime = in_array($dayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
+                $location = $request->pickup_location;
+                $pickupDate = $request->pickup_date;
+                $pickupTime = $request->pickup_time;
+
+                // Check dat locatie bestaat
+                if (!isset($pickupLocations[$location])) {
+                    $validator->errors()->add('pickup_location', 'Ongeldige afhaallocatie.');
+                    return;
+                }
+
+                $openingHours = $pickupLocations[$location]['hours'] ?? [];
 
                 try {
-                    $pickupTime = Carbon::createFromFormat('H:i', $request->pickup_time);
-                    $minTime = Carbon::createFromFormat('H:i', $minPickupTime);
+                    $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
+                } catch (\Exception $e) {
+                    $validator->errors()->add('pickup_date', 'Ongeldige datum.');
+                    return;
+                }
+
+                $dayName = strtolower($pickupDateCarbon->locale('nl')->dayName);
+
+                if (!isset($openingHours[$dayName])) {
+                    $validator->errors()->add('pickup_date', 'Afhalen is niet mogelijk op deze dag.');
+                    return;
+                }
+
+                $hours = $openingHours[$dayName];
+                if ($hours['open'] === $hours['close']) {
+                    $validator->errors()->add('pickup_date', 'De locatie is op deze dag gesloten.');
+                    return;
+                }
+
+                try {
+                    $pickupTimeCarbon = Carbon::createFromFormat('H:i', $pickupTime);
+                    $openTime = Carbon::createFromFormat('H:i', $hours['open']);
+                    $closeTime = Carbon::createFromFormat('H:i', $hours['close']);
                 } catch (\Exception $e) {
                     $validator->errors()->add('pickup_time', 'Ongeldig tijdsformaat.');
                     return;
                 }
 
-                if ($pickupTime->lt($minTime)) {
-                    $validator->errors()->add('pickup_time', "Afhaaltijd moet na $minPickupTime zijn.");
+                if ($pickupTimeCarbon->lt($openTime) || $pickupTimeCarbon->gt($closeTime)) {
+                    $validator->errors()->add('pickup_time', "Afhaaltijd moet binnen de openingstijden zijn ({$hours['open']} - {$hours['close']}).");
                 }
 
-                $pickupLocations = config('pickup.locations');
-                $location = $request->pickup_location;
-
-                if (isset($pickupLocations[$location])) {
-                    $hours = $pickupLocations[$location]['hours'][$dayName] ?? null;
-                    if ($hours) {
-                        $open = Carbon::createFromFormat('H:i', $hours['open']);
-                        $close = Carbon::createFromFormat('H:i', $hours['close']);
-
-                        if ($open->eq($close)) {
-                            $validator->errors()->add('pickup_time', "De locatie is op deze dag gesloten.");
-                        } elseif ($pickupTime->lt($open) || $pickupTime->gt($close)) {
-                            $validator->errors()->add('pickup_time', "Afhaaltijd moet binnen de openingstijden zijn ({$hours['open']} - {$hours['close']}).");
-                        }
-                    } else {
-                        $validator->errors()->add('pickup_location', "Openingstijden voor deze dag zijn niet beschikbaar.");
-                    }
-                } else {
-                    $validator->errors()->add('pickup_location', "Ongeldige afhaallocatie.");
-                }
-
-                // Check of de locatie op de gekozen pickup_date open is
-                if (isset($pickupLocations[$location])) {
-                    $hours = $pickupLocations[$location]['hours'][$dayName] ?? null;
-                    if (!$hours || empty($hours['open']) || $hours['open'] === $hours['close']) {
-                        $validator->errors()->add('pickup_date', "De locatie is op {$request->pickup_date} gesloten.");
+                // Min pickup tijd vandaag (optioneel)
+                $today = Carbon::now()->startOfDay();
+                if ($pickupDateCarbon->isSameDay($today)) {
+                    $minPickupTime = in_array($dayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
+                    $minTime = Carbon::createFromFormat('H:i', $minPickupTime);
+                    if ($pickupTimeCarbon->lt($minTime)) {
+                        $validator->errors()->add('pickup_time', "Afhaaltijd moet na $minPickupTime zijn.");
                     }
                 }
             }
@@ -258,11 +289,13 @@ class CheckoutController extends Controller
                 'addition' => $request->type === 'bezorgen' ? $request->addition : null,
                 'postcode' => $request->type === 'bezorgen' ? $request->postcode : null,
                 'type' => $request->type,
-                'pickup_time' => $request->type === 'afhalen' ? $request->pickup_time : null,
                 'pickup_location' => $request->type === 'afhalen' ? $request->pickup_location : null,
-                'total_price' => $grandTotal,
+                'pickup_date' => $request->type === 'afhalen' ? $request->pickup_date : null,
+                'pickup_time' => $request->type === 'afhalen' ? $request->pickup_time : null,
                 'delivery_date' => $request->type === 'bezorgen' ? $request->delivery_date : null,
+                'total_price' => $grandTotal,
             ]);
+
 
             foreach ($cart as $productId => $types) {
                 $product = $products->get($productId);
@@ -275,6 +308,7 @@ class CheckoutController extends Controller
                         'quantity' => $data['quantity'],
                         'price' => $product->price,
                         'type' => $type,
+
                     ]);
 
                     if ($type === 'afhalen') {
