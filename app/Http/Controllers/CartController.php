@@ -67,7 +67,6 @@ class CartController extends Controller
                 return redirect()->back()->with('error', 'Bezorging is niet mogelijk op dit adres: ' . $checkResult->message);
             }
 
-            // Sla adresgegevens op in sessie
             session([
                 'postcode' => $postcode,
                 'housenumber' => $housenumber,
@@ -79,7 +78,7 @@ class CartController extends Controller
 
         $cart = session('cart', []);
 
-        // Verbied mixen van afhalen en bezorgen in dezelfde cart
+        // Verbied mixen van afhalen en bezorgen
         foreach ($cart as $productId => $types) {
             foreach ($types as $existingType => $item) {
                 if ($existingType !== $type) {
@@ -108,9 +107,16 @@ class CartController extends Controller
         } else {
             $cart[$product->id][$type] = [
                 'quantity' => $quantity,
-                // Product info wordt toegevoegd in index()
             ];
         }
+
+//        if ($type === 'bezorgen') {
+//            $total = $this->calculateCartTotal($cart);
+//            $minOrderAmount = 40;
+//            if ($total < $minOrderAmount) {
+//                return redirect()->back()->with('error', "Voor bezorging is het minimale bestelbedrag €{$minOrderAmount}. Je huidige bestelling is €" . number_format($total, 2));
+//            }
+//        }
 
         session(['cart' => $cart]);
 
@@ -134,6 +140,16 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Product niet gevonden in de winkelwagen.');
         }
 
+        // Controleer mix afhalen/bezorgen
+        foreach ($cart as $productId => $types) {
+            foreach ($types as $existingType => $item) {
+                if ($existingType !== $type) {
+                    session(['cart' => []]);
+                    return redirect()->back()->with('error', 'Je kunt niet afhalen en bezorgen combineren. De winkelwagen is geleegd.');
+                }
+            }
+        }
+
         $maxStock = ($type === 'afhalen') ? $product->pickup_stock : $product->delivery_stock;
 
         if ($quantity > $maxStock) {
@@ -141,6 +157,15 @@ class CartController extends Controller
         }
 
         $cart[$product->id][$type]['quantity'] = $quantity;
+
+//        // Controle minimale bestelbedrag bij bezorgen
+//        if ($type === 'bezorgen') {
+//            $total = $this->calculateCartTotal($cart);
+//            $minOrderAmount = 40;
+//            if ($total < $minOrderAmount) {
+//                return redirect()->back()->with('error', "Voor bezorging is het minimale bestelbedrag €{$minOrderAmount}. Je huidige bestelling is €" . number_format($total, 2));
+//            }
+//        }
 
         session(['cart' => $cart]);
 
@@ -168,5 +193,24 @@ class CartController extends Controller
         session(['cart' => $cart]);
 
         return redirect()->back()->with('success', 'Product succesvol verwijderd.');
+    }
+    protected function calculateCartTotal(array $cart): float
+    {
+        $productIds = array_keys($cart);
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        $total = 0;
+
+        foreach ($cart as $productId => $types) {
+            foreach ($types as $type => $item) {
+                if (isset($products[$productId])) {
+                    $price = $products[$productId]->price;
+                    $quantity = $item['quantity'];
+                    $total += $price * $quantity;
+                }
+            }
+        }
+
+        return $total;
     }
 }

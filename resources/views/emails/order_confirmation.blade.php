@@ -90,38 +90,37 @@
         <li><strong>Email:</strong> {{ $order->email }}</li>
         <li><strong>Telefoon:</strong> {{ $order->phone }}</li>
         <li><strong>Type bestelling:</strong> {{ ucfirst($order->type) }}</li>
-
-        @if ($order->type === 'bezorgen')
-            <li><strong>Adres:</strong>
-                {{ $order->address ?? $order->straat ?? '' }}
-                {{ $order->housenumber }} {{ $order->addition }}
-            </li>
-            <li><strong>Postcode:</strong> {{ $order->postcode }}</li>
-        @endif
-
         <li><strong>Datum:</strong> {{ $order->created_at->format('d-m-Y H:i') }}</li>
     </ul>
 
     <h2>Bestelde producten</h2>
     <ul>
         @php $totaal = 0; @endphp
-        @if ($order->items && $order->items->count())
-            @foreach ($order->items as $item)
-                @php
-                    $product = optional($item->product);
-                    $name = $product->name ?? 'Onbekend product';
-                    $price = $item->price ?? $product->price ?? 0;
-                    $subtotaal = $price * $item->quantity;
-                    $totaal += $subtotaal;
-                @endphp
-                <li>{{ $name }} × {{ $item->quantity }} — €{{ number_format($subtotaal, 2, ',', '.') }}</li>
-            @endforeach
-        @else
-            <li>Geen bestelde producten gevonden.</li>
-        @endif
+        @foreach ($order->items as $item)
+            @php
+                $product = $item->product;
+                $prijs = $product ? $product->price : 0;
+                $subtotaal = $prijs * $item->quantity;
+                $totaal += $subtotaal;
+            @endphp
+            <li>
+                {{ $item->quantity }} × {{ $product->name ?? 'Product verwijderd' }} –
+                €{{ number_format($subtotaal, 2, ',', '.') }}
+            </li>
+        @endforeach
     </ul>
 
-    <p><strong>Totaalprijs:</strong> €{{ number_format($order->total_price ?? $totaal, 2, ',', '.') }}</p>
+        @php $totaal = 0; @endphp
+        @if ($order->type === 'bezorgen' && $deliveryInfo && $deliveryInfo->allowed)
+            <h2>Bezorginformatie</h2>
+            @if ($deliveryInfo)
+                <p><strong>Adres voor bezorging:</strong></p>
+                <p>{!! $deliveryInfo->adresVolledig !!}</p>
+            @endif
+        <p><strong>Bezorgtijd:</strong> tussen <strong>{{ $deliveryInfo->nearestCityCenter['delivery_time'] ?? 'onbekend' }}</strong> en <strong>{{ config('delivery.delivery_end_time') }}</strong> uur.</p>
+    @endif
+
+    <p><strong>Totaal incl. bezorgkosten:</strong> €{{ number_format($order->total_price, 2, ',', '.') }}</p>
 
     <hr>
 

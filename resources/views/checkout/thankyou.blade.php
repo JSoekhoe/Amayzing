@@ -5,7 +5,7 @@
                 Bedankt voor je bestelling!
             </h1>
             <p class="text-lg text-gray-600 mb-10">
-                We hebben je bestelling ontvangen en nemen snel contact met je op.
+                We hebben je bestelling #{{ $order->id }} ontvangen en nemen snel contact met je op.
             </p>
             <a href="{{ route('home') }}"
                class="inline-block bg-gray-200 text-gray-800 font-semibold px-10 py-3 rounded-full shadow-md hover:bg-gray-300 transition">

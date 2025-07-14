@@ -37,15 +37,15 @@ Route::get('/pickup/timeslots', [CheckoutController::class, 'getPickupTimeSlots'
 
 
 // Bedankpagina
-Route::get('/thankyou', [ThankYouController::class, 'index'])->name('thankyou');
+//Route::get('/thankyou', [ThankYouController::class, 'index'])->name('thankyou');
 
-// Betaling
-Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
+
+
 Route::get('/payment/checkout/{orderId}', [PaymentController::class, 'paymentCheckout'])->name('payment.checkout');
-
-// Mollie webhook endpoint voor betaling updates
+Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
 Route::post('/webhook/mollie', [PaymentController::class, 'webhook'])->name('mollie.webhook');
-
+Route::get('/thankyou', [PaymentController::class, 'thankyou'])->name('thankyou');
+Route::get('/payment-failed',[ThankYouController::class, 'thankyou'])->name('payment.failed');
 
 // Profielbeheer (alleen voor ingelogde gebruikers)
 Route::middleware('auth')->group(function () {

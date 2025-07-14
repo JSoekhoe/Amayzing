@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_admin' => IsAdmin::class,
         ]);
     })
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->validateCsrfTokens(
+            except: [
+                'webhook/mollie'
+            ]);
+        })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

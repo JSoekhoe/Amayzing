@@ -160,6 +160,9 @@ class DeliveryCheckerService
             "Tussen <strong>" . $nearestCityCenter['delivery_time'] . "</strong> en <strong>" . config('delivery.delivery_end_time') . "</strong> uur.";
         $result->address = $geo['formatted_address'] ?? $adresVolledig;
         $result->street = $straat;
+        $result->adresVolledig = $adresVolledig;
+
+        $result->nearestCityCenter = $nearestCityCenter;
 
         return $result;
     }

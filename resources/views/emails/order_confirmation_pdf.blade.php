@@ -70,14 +70,6 @@
         <li><strong>Email:</strong> {{ $order->email }}</li>
         <li><strong>Telefoon:</strong> {{ $order->phone }}</li>
         <li><strong>Type bestelling:</strong> {{ ucfirst($order->type) }}</li>
-        @if ($order->type === 'bezorgen')
-            <li><strong>Adres:</strong>
-                {{ $order->straat }}
-                {{ $order->housenumber }}
-                {{ $order->addition }}
-                , {{ $order->postcode }}
-            </li>
-        @endif
         <li><strong>Datum:</strong> {{ $order->created_at->format('d-m-Y H:i') }}</li>
     </ul>
 
@@ -98,7 +90,7 @@
         @endforeach
     </ul>
     <hr>
-    <p><strong>Totaal:</strong> €{{ number_format($totaal, 2, ',', '.') }}</p>
+    <p><strong>Totaal incl. bezorgkosten:</strong> €{{ number_format($order->total_price, 2, ',', '.') }}</p>
 
     <div class="footer">
         <p>Heb je vragen? Neem contact met ons op via Amayzingpastry@gmail.com.</p>

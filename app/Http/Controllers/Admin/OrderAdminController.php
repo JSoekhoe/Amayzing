@@ -19,13 +19,14 @@ class OrderAdminController extends Controller
             ->orderBy('pickup_date', 'asc')
             ->get();
 
+
         $deliveryOrders = Order::with('items.product')
             ->where('type', 'bezorgen')
             ->orderByRaw("CASE WHEN delivery_date = ? THEN 0 ELSE 1 END", [$today])
             ->orderBy('delivery_date', 'asc')
             ->get();
 
-        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders'));
+        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders',));
     }
 
 
@@ -33,7 +34,16 @@ class OrderAdminController extends Controller
     public function show(Order $order)
     {
         $order->load('items.product');
-        return view('admin.orders.show', compact('order'));
+
+        $cityResponse = app(\App\Services\DeliveryCheckerService::class)->check(
+            $order->postcode,
+            $order->housenumber,
+            $order->addition,
+            $order->type, // 'afhalen' of 'bezorgen'
+        );
+        $city = $cityResponse->address ?? null;
+
+        return view('admin.orders.show', compact('order', 'city'));
     }
 
     public function updateStatus(Request $request, Order $order)

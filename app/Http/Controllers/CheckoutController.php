@@ -8,7 +8,6 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
 
 use Carbon\Carbon;
 
@@ -70,6 +69,10 @@ class CheckoutController extends Controller
         // Kies de eerste beschikbare pickup date als default
         $pickupDate = $availablePickupDates[0] ?? $today->format('Y-m-d');
         $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
+        $availablePickupDatesFormatted = collect($availablePickupDates)->mapWithKeys(function ($date) {
+            $formatted = \Carbon\Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY');
+            return [$date => $formatted];
+        })->toArray();
         $dayNamePickup = strtolower($pickupDateCarbon->locale('nl')->dayName);
 
         // Openingstijden voor de geselecteerde pickup date
@@ -121,7 +124,7 @@ class CheckoutController extends Controller
             'availableDeliveryDates' => $availableDeliveryDates,
             'availablePickupDates' => $availablePickupDates,
             'selectedPickupLocation' => $selectedPickupLocation,
-            'selectedPickupDate' => $pickupDate,
+            'availablePickupDatesFormatted' => $availablePickupDatesFormatted,
             'selectedPickupTime' => $pickupTime,
         ]);
     }
@@ -183,7 +186,26 @@ class CheckoutController extends Controller
         $productIds = array_keys($cart);
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-        $validator->after(function ($validator) use ($cart, $products, $request, $pickupLocations) {
+        // Bereken totaalbedrag vóór validatie
+        $total = 0;
+        foreach ($cart as $productId => $types) {
+            $product = $products->get($productId);
+            if (!$product) continue;
+
+            foreach ($types as $type => $data) {
+                $total += $product->price * $data['quantity'];
+            }
+        }
+
+        $validator->after(function ($validator) use ($cart, $products, $request, $pickupLocations, $total) {
+            // Check minimaal bestelbedrag
+            $minimumOrderAmount = 40;
+
+            if ($request->type === 'bezorgen' && $total < $minimumOrderAmount) {
+                $validator->errors()->add('minimum_order', "Het minimale bestelbedrag is €{$minimumOrderAmount}.");
+            }
+
+
             if ($request->type === 'afhalen') {
                 $location = $request->pickup_location;
                 $pickupDate = $request->pickup_date;
@@ -233,7 +255,7 @@ class CheckoutController extends Controller
                 // Min pickup tijd vandaag (optioneel)
                 $today = Carbon::now()->startOfDay();
                 if ($pickupDateCarbon->isSameDay($today)) {
-                    $minPickupTime = in_array($dayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
+                    $minPickupTime = in_array($dayName, ['dinsdag', 'woensdag','donderdag','vrijdag','zaterdag', 'zondag']) ? '11:00' : '14:00';
                     $minTime = Carbon::createFromFormat('H:i', $minPickupTime);
                     if ($pickupTimeCarbon->lt($minTime)) {
                         $validator->errors()->add('pickup_time', "Afhaaltijd moet na $minPickupTime zijn.");
@@ -259,6 +281,52 @@ class CheckoutController extends Controller
                 }
             }
         });
+
+        // Haal aantal producten per dag op, inclusief whole menu box weging
+        $productCountMultipliers = [
+            11 => 7, // whole menu box telt als 7
+        ];
+
+// Datum waarop afhalen of bezorgen plaatsvindt
+        $orderDate = null;
+        if ($request->type === 'afhalen') {
+            $orderDate = $request->pickup_date;
+        } elseif ($request->type === 'bezorgen') {
+            $orderDate = $request->delivery_date;
+        }
+
+        if ($orderDate) {
+            // Haal alle order items op van orders op die dag en van dat type (afhalen/bezorgen)
+            $ordersOfTheDay = Order::where('type', $request->type)
+                ->whereDate($request->type === 'afhalen' ? 'pickup_date' : 'delivery_date', $orderDate)
+                ->pluck('id');
+
+            $orderItems = OrderItem::whereIn('order_id', $ordersOfTheDay)->get();
+
+            $totalProductsSold = 0;
+            foreach ($orderItems as $item) {
+                $multiplier = $productCountMultipliers[$item->product_id] ?? 1;
+                $totalProductsSold += $item->quantity * $multiplier;
+            }
+
+            // Bereken ook de producten in deze nieuwe bestelling
+            $newOrderProductCount = 0;
+            foreach ($cart as $productId => $types) {
+                $multiplier = $productCountMultipliers[$productId] ?? 1;
+                foreach ($types as $type => $data) {
+                    if ($type === $request->type) { // Alleen producten voor dit type (afhalen of bezorgen)
+                        $newOrderProductCount += $data['quantity'] * $multiplier;
+                    }
+                }
+            }
+
+            $maxPerDay = 300;
+            if (($totalProductsSold + $newOrderProductCount) > $maxPerDay) {
+                return redirect()->back()->withInput()->withErrors([
+                    'max_products_per_day' => "Er kunnen maximaal {$maxPerDay} producten per dag verkocht worden. Er zijn er al {$totalProductsSold} besteld voor deze dag."
+                ]);
+            }
+        }
 
         if ($validator->fails()) {
             return redirect()->back()->withInput()->withErrors($validator);

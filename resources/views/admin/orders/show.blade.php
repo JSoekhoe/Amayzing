@@ -52,7 +52,7 @@
                         @method('PATCH')
                         <select name="status" onchange="this.form.submit()"
                                 class="w-full mt-1 rounded border border-gray-300 px-4 py-2 focus:ring-rose-400 focus:border-rose-400 shadow-sm transition">
-                            @foreach(['pending', 'in_behandeling', 'onderweg', 'afgerond', 'geannuleerd'] as $status)
+                            @foreach(['pending', 'paid', 'onderweg', 'afgerond', 'geannuleerd'] as $status)
                                 <option value="{{ $status }}" {{ $order->status === $status ? 'selected' : '' }}>
                                     {{ ucfirst(str_replace('_', ' ', $status)) }}
                                 </option>
@@ -65,7 +65,7 @@
                 <div>
                     <h3 class="text-sm font-semibold text-gray-500 uppercase mb-1">Betaling</h3>
                     @if($order->payment_id)
-                        <p class="text-sm">Betaald (ID: {{ $order->payment_id }})</p>
+                        <p class="text-sm">Betaald: {{ $order->paid_at ? 'ja' : 'nee' }}</p>
                         @if($order->paid_at)
                             <p class="text-sm text-gray-600">Op: {{ \Carbon\Carbon::parse($order->paid_at)->format('d-m-Y H:i') }}</p>
                         @endif
@@ -106,8 +106,7 @@
             <div class="space-y-4">
                 <h2 class="text-2xl font-serif font-semibold text-gray-900 border-b pb-2">Bezorglocatie</h2>
                 <p class="text-gray-700">
-                    {{ $order->street }} {{ $order->housenumber }}{{ $order->addition ? ' ' . $order->addition : '' }}<br>
-                    {{ $order->postcode }}
+                    {{ $city }}
                 </p>
             </div>
         @endif

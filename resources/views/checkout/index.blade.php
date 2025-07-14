@@ -155,8 +155,10 @@
                             required
                             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition @error('pickup_date') border-red-500 @enderror"
                         >
-                            @foreach($availablePickupDates as $date)
-                                <option value="{{ $date }}" @if(old('pickup_date') === $date) selected @endif>{{ \Carbon\Carbon::parse($date)->translatedFormat('l d F Y') }}</option>
+                            @foreach ($availablePickupDatesFormatted as $value => $label)
+                                <option value="{{ $value }}" {{ old('pickup_date', $availablePickupDates) == $value ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
                             @endforeach
                         </select>
                         @error('pickup_date')
