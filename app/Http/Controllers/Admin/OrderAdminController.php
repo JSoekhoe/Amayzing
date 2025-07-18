@@ -13,8 +13,12 @@ class OrderAdminController extends Controller
     {
         $today = Carbon::today()->toDateString();
 
+
+        // Haal de bestellingen op, gesorteerd op afhaaldatum of bezorgdatum
+
         $pickupOrders = Order::with('items.product')
             ->where('type', 'afhalen')
+            ->wherenotNull('paid_at')
             ->orderByRaw("CASE WHEN pickup_date = ? THEN 0 ELSE 1 END", [$today])
             ->orderBy('pickup_date', 'asc')
             ->get();
@@ -22,9 +26,22 @@ class OrderAdminController extends Controller
 
         $deliveryOrders = Order::with('items.product')
             ->where('type', 'bezorgen')
+            ->wherenotNull('paid_at')
             ->orderByRaw("CASE WHEN delivery_date = ? THEN 0 ELSE 1 END", [$today])
             ->orderBy('delivery_date', 'asc')
             ->get();
+
+        $deliveryChecker = app(\App\Services\DeliveryCheckerService::class);
+
+        foreach ($deliveryOrders as $order) {
+            $cityResponse = $deliveryChecker->check(
+                $order->postcode,
+                $order->housenumber,
+                $order->addition,
+                $order->type
+            );
+            $order->city = $cityResponse->woonplaats ?? null;
+        }
 
         return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders',));
     }
@@ -41,7 +58,7 @@ class OrderAdminController extends Controller
             $order->addition,
             $order->type, // 'afhalen' of 'bezorgen'
         );
-        $city = $cityResponse->address ?? null;
+        $city = $cityResponse->woonplaats ?? null;
 
         return view('admin.orders.show', compact('order', 'city'));
     }

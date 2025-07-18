@@ -161,6 +161,7 @@ class DeliveryCheckerService
         $result->address = $geo['formatted_address'] ?? $adresVolledig;
         $result->street = $straat;
         $result->adresVolledig = $adresVolledig;
+        $result->woonplaats = $woonplaats;
 
         $result->nearestCityCenter = $nearestCityCenter;
 

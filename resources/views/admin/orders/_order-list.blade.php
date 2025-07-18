@@ -20,6 +20,11 @@
         <div class="text-sm text-gray-700 space-y-1 mb-4">
             <p><strong>Klant:</strong> {{ $order->name }}</p>
             <p><strong>Type:</strong> {{ ucfirst($order->type) }}</p>
+            @if($order->type === 'bezorgen' && $order->street && $order->postcode)
+                <p><strong>Adres:</strong> {{ $order->street }} {{ $order->housenumber }}, {{ $order->postcode }} {{ $order->city ?? '' }}</p>
+            @endif
+
+            <p><strong>Telefoon:</strong> {{ $order->phone }}</p>
             <p><strong>Totaalbedrag:</strong> €{{ number_format($order->total_price, 2, ',', '.') }}</p>
             <p>
                 <strong>Bezorgdatum:</strong>

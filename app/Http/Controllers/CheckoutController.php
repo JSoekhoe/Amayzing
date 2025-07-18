@@ -298,6 +298,7 @@ class CheckoutController extends Controller
         if ($orderDate) {
             // Haal alle order items op van orders op die dag en van dat type (afhalen/bezorgen)
             $ordersOfTheDay = Order::where('type', $request->type)
+                ->whereNotNull('paid_at') // Alleen betaalde orders
                 ->whereDate($request->type === 'afhalen' ? 'pickup_date' : 'delivery_date', $orderDate)
                 ->pluck('id');
 
