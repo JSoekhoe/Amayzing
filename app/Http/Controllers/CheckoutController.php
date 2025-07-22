@@ -321,7 +321,7 @@ class CheckoutController extends Controller
                 }
             }
 
-            $maxPerDay = 300;
+            $maxPerDay = 200;
             if (($totalProductsSold + $newOrderProductCount) > $maxPerDay) {
                 return redirect()->back()->withInput()->withErrors([
                     'max_products_per_day' => "Er kunnen maximaal {$maxPerDay} producten per dag verkocht worden. Er zijn er al {$totalProductsSold} besteld voor deze dag."

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+
 class OrderAdminController extends Controller
 {
 
@@ -34,13 +36,16 @@ class OrderAdminController extends Controller
         $deliveryChecker = app(\App\Services\DeliveryCheckerService::class);
 
         foreach ($deliveryOrders as $order) {
-            $cityResponse = $deliveryChecker->check(
-                $order->postcode,
-                $order->housenumber,
-                $order->addition,
-                $order->type
-            );
-            $order->city = $cityResponse->woonplaats ?? null;
+            $cacheKey = "city_lookup_{$order->postcode}_{$order->housenumber}_{$order->addition}";
+            $order->city = Cache::remember($cacheKey, now()->addDay(), function() use ($deliveryChecker, $order) {
+                $cityResponse = $deliveryChecker->check(
+                    $order->postcode,
+                    $order->housenumber,
+                    $order->addition,
+                    $order->type
+                );
+                return $cityResponse->woonplaats ?? null;
+            });
         }
 
         return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders',));

@@ -15,6 +15,8 @@
 
     <style>
         body {
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
             font-family: 'Inter', sans-serif;
         }
         h1, h2, h3 {
@@ -59,5 +61,21 @@
 
 {{-- Footer (optioneel) --}}
 {{-- @include('layouts.footer') --}}
+<script>
+    // Scrollpositie opslaan
+    window.addEventListener('beforeunload', function () {
+        localStorage.setItem('scrollPosition', window.scrollY);
+    });
+
+    // Scrollpositie herstellen zodra DOM geladen is
+    window.addEventListener('DOMContentLoaded', function () {
+        const scrollPosition = localStorage.getItem('scrollPosition');
+        if (scrollPosition !== null) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            localStorage.removeItem('scrollPosition');
+        }
+        document.body.style.opacity = '1';
+    });
+</script>
 </body>
 </html>

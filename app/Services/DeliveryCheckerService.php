@@ -105,7 +105,11 @@ class DeliveryCheckerService
 
         // Check of binnen max afstand
         if ($nearestDistance > $maxDistance) {
-            $result->message = 'Helaas, bezorging is niet beschikbaar op dit adres voor levering.';
+            $result->message = 'Helaas, bezorging is niet beschikbaar op dit adres voor levering. ' .
+                'De dichtstbijzijnde stad is ' . ucfirst($nearestCityName) . ', maar deze ligt ' .
+                number_format($nearestDistance, 2) . ' km van je adres af. ' .
+                'We bezorgen alleen binnen ' . $maxDistance . ' km van onze stadscentra.';
+
             return $result;
         }
 

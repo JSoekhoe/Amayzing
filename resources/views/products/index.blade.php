@@ -76,6 +76,7 @@
                         Bestellen kan tot <strong>{{ $orderCutoff }}</strong> de avond voor de bezorging.
                         Bezorging vindt plaats <strong>{{ $deliveryStartWeekday }}</strong> op weekdagen, en <strong>{{ $deliveryStartWeekend }}</strong> in het weekend.
                         Bezorging loopt tot uiterlijk <strong>{{ $deliveryEnd }}</strong>.
+                        Val je buiten de bezorgstraal of ben je te laat met bestellen? Bel dan naar <strong>06 44042554</strong> om te kijken of je je desserts alsnog kunt afhalen bij een afhaalpunt!
                     </p>
                 </aside>
 
