@@ -126,7 +126,6 @@
                 </div>
             @endif
 
-
             {{-- Afhalen --}}
             @if($currentDeliveryMethod === 'afhalen')
                 <div class="space-y-4">

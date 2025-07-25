@@ -1,17 +1,17 @@
 <?php
 
 return [
+    'max_distance_km' => 10,
+    'last_order_time' => '22:00',
+    'weekday_start_time' => '13:00',
+    'delivery_end_time' => '20:30',
+
     'cities' => [
         'arnhem' => [
             'center' => ['lat' => 51.9851, 'lng' => 5.8987],
             'delivery_day' => 'wednesday',
             'delivery_time' => 'van 13:00 tot 20:30 uur',
         ],
-//        'breda' => [
-//            'center' => ['lat' => 51.5719, 'lng' => 4.7683],
-//            'delivery_day' => 'thursday',
-//            'delivery_time' => 'vanaf 14:00 uur',
-//        ],
         'almere' => [
             'center' => ['lat' => 52.37527, 'lng' => 5.21933],
             'delivery_day' => 'thursday',
@@ -32,15 +32,71 @@ return [
             'delivery_day' => 'sunday',
             'delivery_time' => 'vanaf 11:00 uur',
         ],
-
+        'eindhoven' => [
+            'center' => ['lat' => 51.4416, 'lng' => 5.4697],
+            'delivery_day' => 'wednesday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'groningen' => [
+            'center' => ['lat' => 53.2194, 'lng' => 6.5665],
+            'delivery_day' => 'wednesday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'amsterdam' => [
+            'center' => ['lat' => 52.3676, 'lng' => 4.9041],
+            'delivery_day' => 'thursday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'tilburg' => [
+            'center' => ['lat' => 51.5606, 'lng' => 5.0919],
+            'delivery_day' => 'wednesday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'antwerpen' => [
+            'center' => ['lat' => 51.2194, 'lng' => 4.4025],
+            'delivery_day' => 'thursday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'denbosch' => [
+            'center' => ['lat' => 51.6900, 'lng' => 5.3037],
+            'delivery_day' => 'wednesday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'enschede' => [
+            'center' => ['lat' => 52.2215, 'lng' => 6.8937],
+            'delivery_day' => 'thursday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
     ],
 
-    'max_distance_km' => 10,
+    'fixed_schedule' => [
+        'friday' => 'utrecht',
+        'saturday' => 'denhaag',
+        'sunday' => 'rotterdam',
+    ],
 
-    'last_order_time' => '22:00',
-    'weekday_start_time' => '13:00',
-    'weekend_start_time' => '11:00',
-    'delivery_end_time' => '20:30',
+    'delivery_schedule' => [
+        30 => [
+            'wednesday' => 'groningen',
+            'thursday'  => 'almere',
+        ],
+        31 => [
+            'wednesday' => 'eindhoven',
+            'thursday'  => 'almere',
+        ],
+        32 => [
+            'wednesday' => 'groningen',
+            'thursday'  => 'amsterdam',
+        ],
+        33 => [
+            'wednesday' => 'tilburg',
+            'thursday'  => 'antwerpen',
+        ],
+        34 => [
+            'wednesday' => 'denbosch',
+            'thursday'  => 'enschede',
+        ],
+    ],
 
     'pickup' => [
         'address' => 'Centrum van',

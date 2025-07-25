@@ -4,7 +4,7 @@
         'locations' => [
             'wormerveer' => [
                 'name' => 'Wormerveer – Industrieweg 19A',
-                'days' => 'Dinsdag t/m zondag: 12:00 – 17:00',
+                'days' => 'Dinsdag t/m Zaterdag: 12:00 – 17:00',
                 'hours' => [
                     'maandag' => ['open' => '00:00', 'close' => '00:00'], // gesloten
                     'dinsdag' => ['open' => '12:00', 'close' => '17:00'],
@@ -12,7 +12,7 @@
                     'donderdag' => ['open' => '12:00', 'close' => '17:00'],
                     'vrijdag' => ['open' => '12:00', 'close' => '17:00'],
                     'zaterdag' => ['open' => '12:00', 'close' => '17:00'],
-                    'zondag' => ['open' => '12:00', 'close' => '17:00'],
+                    'zondag' => ['open' => '00:00', 'close' => '00:00'], // gesloten
                 ],
             ],
         ],

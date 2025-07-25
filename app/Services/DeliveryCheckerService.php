@@ -114,24 +114,62 @@ class DeliveryCheckerService
         }
 
         // 6. Bepaal leverdagen (altijd als array)
-        $deliveryDays = (array) ($nearestCityCenter['delivery_day'] ?? []);
-        $deliveryDays = array_map('strtolower', $deliveryDays);
+        $deliverySchedule = config('delivery.delivery_schedule');
+        $fixedSchedule = config('delivery.fixed_schedule');
+        $deliveryDays = [];
+
+        foreach ($deliverySchedule as $week => $days) {
+            foreach ($days as $day => $city) {
+                if (strtolower($city) === strtolower($nearestCityName)) {
+                    $deliveryDays[] = strtolower($day);
+                }
+            }
+        }
+
+        foreach ($fixedSchedule as $day => $city) {
+            if (strtolower($city) === strtolower($nearestCityName)) {
+                $deliveryDays[] = strtolower($day);
+            }
+        }
+
+        $deliveryDays = array_unique($deliveryDays);
 
         Carbon::setLocale('nl');
         $now = Carbon::now();
 
         // 7. Genereer beschikbare leverdata in komende 2 maanden voor deze dagen
-        $availableDates = collect(range(0, 60))
-            ->map(fn($i) => $now->copy()->addDays($i))
-            ->filter(fn($date) => in_array(strtolower($date->format('l')), $deliveryDays))
-            ->filter(fn($date) => $date->isAfter($now)) // alleen toekomst
-            ->values()
-            ->map(fn($date) => [
-                'iso' => $date->format('Y-m-d'),
-                'label' => $date->translatedFormat('l j F Y'),
-            ]);
+        $deliverySchedule = config('delivery.delivery_schedule');
+        $maxWeeksAhead = 2; // Aantal weken vooruitkijken
+        $availableDates = collect();
+
+        foreach (range(0, $maxWeeksAhead * 7) as $i) {
+            $date = $now->copy()->addDays($i);
+            $dayName = strtolower($date->format('l')); // e.g. "wednesday"
+            $weekNumber = $date->week;
+
+            // Alleen verder als deze dag in de standaard delivery_days zit
+            if (!in_array($dayName, $deliveryDays)) {
+                continue;
+            }
+
+            // Is deze stad op deze dag ingepland in de delivery_schedule?
+            $cityForDay = $deliverySchedule[$weekNumber][$dayName] ?? $fixedSchedule[$dayName] ?? null;
+
+            if (
+                $cityForDay &&
+                strtolower($cityForDay) === strtolower($nearestCityName)
+            )
+            {
+                $availableDates->push([
+                    'iso' => $date->format('Y-m-d'),
+                    'label' => $date->translatedFormat('l j F Y'),
+                ]);
+            }
+        }
 
         $result->availableDates = $availableDates;
+
+
 
         // 8. Check of levering voor morgen mogelijk is
         $tomorrow = $now->copy()->addDay();
@@ -147,10 +185,43 @@ class DeliveryCheckerService
             $daysFormatted = implode(', ', array_map(function($d) use ($dayTranslations) {
                 return $dayTranslations[$d] ?? ucfirst($d);
             }, $deliveryDays));
-            $result->message = "Bezorging is mogelijk in " . ucfirst($nearestCityName) . " op de volgende dag(en): {$daysFormatted}. Kies een bezorgdatum hieronder.";
+            $result->message = "Bezorging is mogelijk in " . ucfirst($nearestCityName) . " op de volgende dag(en): {$daysFormatted}.";
+        }
+// 9. Check of de stad voorkomt in leveringsschema van deze of volgende week
+        $weekNow = now()->week;
+        $weekNext = now()->addWeek()->week;
+        $cityFoundInSchedule = false;
+
+        foreach ([$weekNow, $weekNext] as $week) {
+            if (!isset($deliverySchedule[$week])) {
+                continue;
+            }
+
+            foreach ($deliverySchedule[$week] as $day => $cityName) {
+                if (strtolower($cityName) === strtolower($nearestCityName)) {
+                    $cityFoundInSchedule = true;
+                    break 2;
+                }
+            }
         }
 
-        // 9. Bezorging toegestaan: adres info
+// Check ook vaste dagen
+        foreach ($fixedSchedule as $day => $cityName) {
+            if (strtolower($cityName) === strtolower($nearestCityName)) {
+                $cityFoundInSchedule = true;
+                break;
+            }
+        }
+
+
+        if (!$cityFoundInSchedule) {
+            $result->allowed = false;
+            $result->message = 'Helaas, we bezorgen momenteel niet in ' . ucfirst($nearestCityName) .
+                ' in de huidige of volgende week. Kijk later nog eens, of kies voor afhalen.';
+            return $result;
+        }
+
+        // 10. Bezorging toegestaan: adres info
         $straat = $geo['straat'] ?? '';
         $woonplaats = $geo['woonplaats'] ?? ucfirst($nearestCityName);
         $postcode = $geo['postcode'] ?? $formattedPostcode;
@@ -160,8 +231,7 @@ class DeliveryCheckerService
 
         $result->allowed = true;
         $result->selectedDeliveryMethod = 'bezorgen';
-        $result->message .= "<br>Op het volgende adres:<br><strong>{$adresVolledig}</strong><br>" .
-            "Tussen <strong>" . $nearestCityCenter['delivery_time'] . "</strong> en <strong>" . config('delivery.delivery_end_time') . "</strong> uur.";
+        $result->message .= "<br>Op het volgende adres:<br><strong>{$adresVolledig}</strong><br>";
         $result->address = $geo['formatted_address'] ?? $adresVolledig;
         $result->street = $straat;
         $result->adresVolledig = $adresVolledig;

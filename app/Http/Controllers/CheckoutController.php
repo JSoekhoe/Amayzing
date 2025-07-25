@@ -108,6 +108,8 @@ class CheckoutController extends Controller
             }
         }
 
+
+
         return view('checkout.index', [
             'cart' => $cart,
             'products' => $products,
@@ -296,14 +298,19 @@ class CheckoutController extends Controller
         }
 
         if ($orderDate) {
-            // Haal alle order items op van orders op die dag en van dat type (afhalen/bezorgen)
-            $ordersOfTheDay = Order::where('type', $request->type)
-                ->whereNotNull('paid_at') // Alleen betaalde orders
-                ->whereDate($request->type === 'afhalen' ? 'pickup_date' : 'delivery_date', $orderDate)
+            $weekNumber = Carbon::parse($orderDate)->isoWeek();
+            $dateColumn = $request->type === 'afhalen' ? 'pickup_date' : 'delivery_date';
+
+            // Haal alle order IDs op die in dezelfde week vallen en betaald zijn
+            $ordersOfTheWeek = Order::where('type', $request->type)
+                ->whereNotNull('paid_at')
+                ->whereRaw('WEEKOFYEAR(' . $dateColumn . ') = ?', [$weekNumber])
                 ->pluck('id');
 
-            $orderItems = OrderItem::whereIn('order_id', $ordersOfTheDay)->get();
+            // Haal de orderitems op van deze orders
+            $orderItems = OrderItem::whereIn('order_id', $ordersOfTheWeek)->get();
 
+            // Bereken het totaal aantal verkochte producten, met multiplier per product
             $totalProductsSold = 0;
             foreach ($orderItems as $item) {
                 $multiplier = $productCountMultipliers[$item->product_id] ?? 1;

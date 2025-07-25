@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     Admin\OrderAdminController,
     Admin\ProductAdminController
 };
+use Illuminate\Support\Facades\Config;
 
 // Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -56,7 +57,12 @@ Route::middleware('auth')->group(function () {
 
 // Producten
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/levering', function () {
+    $schedule = Config::get('delivery.delivery_schedule');
+    $cities = Config::get('delivery.cities');
 
+    return view('delivery_schedule', compact('schedule', 'cities'));
+});
 // Admin routes (alleen voor beheerders)
 Route::prefix('admin')
     ->middleware(['auth', 'is_admin'])

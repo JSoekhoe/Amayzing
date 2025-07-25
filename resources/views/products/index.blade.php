@@ -64,12 +64,44 @@
                 <aside class="w-full lg:w-2/3 bg-gray-100 rounded-3xl shadow-sm p-6 text-gray-900">
                 <h3 class="font-serif text-xl font-semibold mb-4">Bezorginformatie</h3>
 
-                    <p class="mb-3"><strong>Bezorgdagen en steden:</strong></p>
-                    <ul class="mb-4 text-gray-800">
-                        @foreach ($cities as $cityName => $cityInfo)
-                            <li>{{ ucfirst($cityName) }}: {{ $cityInfo['delivery_day'] }} - {{ $cityInfo['delivery_time'] }}</li>
-                        @endforeach
-                    </ul>
+                    {{-- Leverschema’s voor huidige week en volgende week --}}
+                    @if (!empty($scheduleThisWeek) || !empty($scheduleNextWeek))
+                        <div class="space-y-6 text-gray-800">
+
+                            {{-- Huidige week --}}
+                            @if (!empty($scheduleThisWeek))
+                                <div class="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
+                                    <h4 class="font-serif text-lg font-semibold mb-2">
+                                        Leverdagen – week {{ $weekNow }}
+                                    </h4>
+                                    <ul class="space-y-1">
+                                        @foreach($scheduleThisWeek as $item)
+                                            <li>
+                                                {{ $item['day'] }} ({{ $item['date'] }}): {{ $item['city'] }} – {{ $item['time'] }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            {{-- Volgende week --}}
+                            @if (!empty($scheduleNextWeek))
+                                <div class="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
+                                    <h4 class="font-serif text-lg font-semibold mb-2">
+                                        Leverdagen – week {{ $weekNext }}
+                                    </h4>
+                                    <ul class="space-y-1">
+                                        @foreach($scheduleNextWeek as $item)
+                                            <li>
+                                                {{ $item['day'] }} ({{ $item['date'] }}): {{ $item['city'] }} – {{ $item['time'] }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                        </div>
+                    @endif
 
                     <p class="mb-3 text-gray-800">
                         We bezorgen binnen een straal van <strong>{{ $radiusKm }} km</strong> vanaf het centrum van elke stad.
