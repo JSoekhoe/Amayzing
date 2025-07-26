@@ -138,7 +138,6 @@ class DeliveryCheckerService
         $now = Carbon::now();
 
         // 7. Genereer beschikbare leverdata in komende 2 maanden voor deze dagen
-        $deliverySchedule = config('delivery.delivery_schedule');
         $maxWeeksAhead = 2; // Aantal weken vooruitkijken
         $availableDates = collect();
 
@@ -154,7 +153,6 @@ class DeliveryCheckerService
 
             // Is deze stad op deze dag ingepland in de delivery_schedule?
             $cityForDay = $deliverySchedule[$weekNumber][$dayName] ?? $fixedSchedule[$dayName] ?? null;
-
             if (
                 $cityForDay &&
                 strtolower($cityForDay) === strtolower($nearestCityName)
@@ -166,10 +164,9 @@ class DeliveryCheckerService
                 ]);
             }
         }
-
-        $result->availableDates = $availableDates;
-
-
+        $availableDates = $availableDates->reject(function ($d) use ($now) {
+            return $d['iso'] === $now->format('Y-m-d');
+        })->values();
 
         // 8. Check of levering voor morgen mogelijk is
         $tomorrow = $now->copy()->addDay();
@@ -177,16 +174,29 @@ class DeliveryCheckerService
 
         if ($canDeliverTomorrow) {
             $deadline = $tomorrow->copy()->subDay()->setTimeFromTimeString(config('delivery.last_order_time'));
+
             if ($now->gt($deadline)) {
+                // Verwijder morgen uit de beschikbare data
+                $availableDates = $availableDates->reject(fn($d) => $d['iso'] === $tomorrow->format('Y-m-d'))->values();
+
+                // Meld dat bezorging voor morgen niet meer kan
                 $result->message = "Bezorging voor <strong>morgen</strong> is niet meer mogelijk in " . ucfirst($nearestCityName) .
                     ". Kies een andere datum hieronder.<br>Bestel vóór <strong>" . config('delivery.last_order_time') . "</strong> uur de avond ervoor.";
             }
-        } else {
+        }
+
+// Als er nog geen message is gezet, toon algemene boodschap
+        if (empty($result->message)) {
             $daysFormatted = implode(', ', array_map(function($d) use ($dayTranslations) {
                 return $dayTranslations[$d] ?? ucfirst($d);
             }, $deliveryDays));
+
             $result->message = "Bezorging is mogelijk in " . ucfirst($nearestCityName) . " op de volgende dag(en): {$daysFormatted}.";
         }
+
+// Werk beschikbare data bij
+        $result->availableDates = $availableDates;
+
 // 9. Check of de stad voorkomt in leveringsschema van deze of volgende week
         $weekNow = now()->week;
         $weekNext = now()->addWeek()->week;
