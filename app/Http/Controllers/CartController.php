@@ -51,6 +51,7 @@ class CartController extends Controller
             'postcode' => 'nullable|string',
             'housenumber' => 'nullable|string',
             'addition' => 'nullable|string',
+            'straatnaam' => 'nullable|string',
         ]);
 
         $quantity = $request->input('quantity');
@@ -60,8 +61,9 @@ class CartController extends Controller
             $postcode = $request->input('postcode');
             $housenumber = $request->input('housenumber');
             $addition = $request->input('addition');
+            $straatnaam = $request->input('straatnaam');
 
-            $checkResult = $this->deliveryChecker->check($postcode, $housenumber, $addition, 'bezorgen');
+            $checkResult = $this->deliveryChecker->check($postcode, $housenumber, $addition, 'bezorgen', null,  $straatnaam);
 
             if (!$checkResult->allowed) {
                 return redirect()->back()->with('error', 'Bezorging is niet mogelijk op dit adres: ' . $checkResult->message);
@@ -73,6 +75,7 @@ class CartController extends Controller
                 'straat' => $checkResult->street ?? '',
                 'addition' => $addition,
                 'delivery_check_passed' => true,
+                'straatnaam' => $straatnaam
             ]);
         }
 

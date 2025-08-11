@@ -144,6 +144,15 @@
                                        title="Voer een geldige toevoeging in (letters, cijfers, spaties, streepje)"
                                        class="w-full border border-gray-400 rounded-xl p-2" />
                             </div>
+
+                            <div>
+                                <label for="straatnaam" class="block mb-1 font-semibold">Straatnaam</label>
+                                <input id="straatnaam" name="straatnaam"
+                                       value="{{ old('straatnaam', $straatnaam ?? '') }}"
+                                       class="w-full border border-gray-400 rounded-xl p-2"
+                                       placeholder="Verplicht bij Belgische postcode"
+                                       readonly />
+                            </div>
                         </div>
 
                         <button type="submit"
@@ -238,3 +247,32 @@
         </div>
     </section>
 </x-app-layout>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const postcodeInput = document.querySelector('input[name="postcode"]');
+        const straatnaamInput = document.querySelector('input[name="straatnaam"]');
+
+        postcodeInput.addEventListener('input', function () {
+            const postcode = postcodeInput.value.trim();
+
+            // Belgische postcode: 4 cijfers, geen letters
+            const isBelgianPostcode = /^[1-9][0-9]{3}$/.test(postcode);
+
+            if (isBelgianPostcode) {
+                straatnaamInput.readOnly = false;
+                straatnaamInput.placeholder = "Verplicht bij Belgische postcode";
+                straatnaamInput.required = true;
+            } else {
+                straatnaamInput.readOnly = true;
+                straatnaamInput.placeholder = "Niet vereist bij Nederlandse postcode";
+                straatnaamInput.required = false;
+                straatnaamInput.value = ''; // evt. leegmaken
+            }
+
+        });
+
+        // Optioneel: trigger bij laden om gelijk goede status te zetten
+        postcodeInput.dispatchEvent(new Event('input'));
+    });
+</script>
+

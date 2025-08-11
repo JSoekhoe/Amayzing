@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Services\DeliveryCheckerService;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Log;
 
 
 class ProductController extends Controller
@@ -30,6 +30,13 @@ class ProductController extends Controller
         $postcode = $request->input('postcode', session('postcode'));
         $housenumber = $request->input('housenumber', session('housenumber'));
         $addition = $request->input('addition', session('addition'));
+        // Check Belgische postcode: 4 cijfers, geen letters
+        if (preg_match('/^[1-9][0-9]{3}$/', $postcode)) {
+            $straatnaam = $request->input('straatnaam', session('straatnaam'));
+        } else {
+            $straatnaam = null;  // Of lege string
+        }
+        Log::info('Straatnaam ontvangen:', ['straatnaam' => $straatnaam]);
 
         // Haal producten op
         $query = Product::query();
@@ -45,7 +52,7 @@ class ProductController extends Controller
         $deliveryMessage = '';
 
         if ($deliveryMethod === 'bezorgen') {
-            $result = $deliveryChecker->check($postcode, $housenumber, $addition, $deliveryMethod);
+            $result = $deliveryChecker->check($postcode, $housenumber, $addition, $deliveryMethod, null, $straatnaam);
 
             $deliveryAllowed = $result->allowed;
             $deliveryMessage = $result->message;
@@ -158,7 +165,8 @@ class ProductController extends Controller
             'scheduleThisWeek',
             'scheduleNextWeek',
             'weekNow',
-            'weekNext'
+            'weekNext',
+            'straatnaam'
         ));
     }
 }

@@ -89,7 +89,7 @@ return [
             'thursday'  => 'amsterdam',
         ],
         33 => [
-            'wednesday' => 'tilburg',
+//            'wednesday' => 'tilburg',
             'thursday'  => 'antwerpen',
         ],
         34 => [
