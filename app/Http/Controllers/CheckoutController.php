@@ -171,7 +171,7 @@ class CheckoutController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email',
-            'phone' => ['required', 'regex:/^(\+31|0)[1-9][0-9]{8}$/'],
+            'phone' => ['required', 'regex:/^\+?[0-9\s\-()]{6,20}$/'],
             'type' => 'required|in:afhalen,bezorgen',
             'pickup_location' => 'required_if:type,afhalen|in:' . implode(',', $pickupLocationKeys),
             'pickup_date' => 'required_if:type,afhalen|date_format:Y-m-d|after_or_equal:today',
