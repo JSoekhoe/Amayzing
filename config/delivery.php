@@ -70,15 +70,15 @@ return [
     ],
 
     'fixed_schedule' => [
-        'friday' => 'utrecht',
+        'friday' => 'amsterdam',
         'saturday' => 'denhaag',
         'sunday' => 'rotterdam',
     ],
 
     'delivery_schedule' => [
         30 => [
-            'wednesday' => 'groningen',
-            'thursday'  => 'almere',
+            'wednesday' => 'tilburg',
+            'thursday'  => 'denbosch',
         ],
         31 => [
             'wednesday' => 'eindhoven',
@@ -89,12 +89,28 @@ return [
             'thursday'  => 'amsterdam',
         ],
         33 => [
-//            'wednesday' => 'tilburg',
+            'wednesday' => 'tilburg',
             'thursday'  => 'antwerpen',
         ],
         34 => [
             'wednesday' => 'denbosch',
             'thursday'  => 'enschede',
+        ],
+        35 => [
+            'wednesday' => 'tilburg',
+            'thursday'  => 'denbosch',
+        ],
+        36 => [
+            'wednesday' => 'eindhoven',
+            'thursday'  => 'utrecht',
+        ],
+        37 => [
+            'wednesday' => 'almere',
+            'thursday'  => 'antwerpen',
+        ],
+        38 => [
+            'wednesday' => 'arnhem',
+            'thursday'  => 'utrecht',
         ],
     ],
 
