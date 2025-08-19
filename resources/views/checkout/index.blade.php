@@ -83,6 +83,7 @@
                     ['name' => 'housenumber', 'label' => 'Huisnummer', 'placeholder' => '123', 'value' => old('housenumber', $housenumber ?? '')],
                     ['name' => 'addition', 'label' => 'Toevoeging', 'placeholder' => 'Bijv. A, Bus', 'value' => old('addition', $addition ?? '')],
                     ['name' => 'postcode', 'label' => 'Postcode', 'placeholder' => '1234 AB', 'value' => old('postcode', $postcode ?? '')],
+                    ['name' => 'woonplaats', 'label' => 'Stad', 'placeholder' => '', 'value' => old('woonplaats', $woonplaats ?? '')],
                 ] as $field)
                     <div>
                         <label for="{{ $field['name'] }}" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">

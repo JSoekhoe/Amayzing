@@ -121,6 +121,7 @@ class CheckoutController extends Controller
             'minPickupTime' => $minPickupTime,
             'straat' => session('straat', ''),
             'postcode' => session('postcode'),
+            'woonplaats' => session('woonplaats'),
             'housenumber' => session('housenumber'),
             'addition' => session('addition'),
             'availableDeliveryDates' => $availableDeliveryDates,
@@ -158,6 +159,7 @@ class CheckoutController extends Controller
                 'housenumber' => session('housenumber'),
                 'addition' => session('addition'),
                 'postcode' => session('postcode'),
+                'woonplaats' => session('woonplaats'),
             ]);
         }
 
@@ -178,6 +180,7 @@ class CheckoutController extends Controller
             'pickup_time' => 'required_if:type,afhalen|date_format:H:i',
             'straat' => 'required_if:type,bezorgen|string|max:255',
             'postcode' => 'required_if:type,bezorgen|string|max:10',
+            'woonplaats' => 'required_if:type,bezorgen|string|max:255',
             'housenumber' => 'required_if:type,bezorgen|string|max:10',
             'addition' => 'nullable|string|max:10',
             'delivery_date' => 'required_if:type,bezorgen|date_format:Y-m-d',
@@ -363,6 +366,7 @@ class CheckoutController extends Controller
                 'housenumber' => $request->type === 'bezorgen' ? $request->housenumber : null,
                 'addition' => $request->type === 'bezorgen' ? $request->addition : null,
                 'postcode' => $request->type === 'bezorgen' ? $request->postcode : null,
+                'city' => $request->type === 'bezorgen' ? $request->woonplaats : null,
                 'type' => $request->type,
                 'pickup_location' => $request->type === 'afhalen' ? $request->pickup_location : null,
                 'pickup_date' => $request->type === 'afhalen' ? $request->pickup_date : null,

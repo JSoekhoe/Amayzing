@@ -98,7 +98,7 @@ return [
         ],
         35 => [
             'wednesday' => 'tilburg',
-            'thursday'  => 'denbosch',
+            'thursday'  => 'groningen',
         ],
         36 => [
             'wednesday' => 'eindhoven',

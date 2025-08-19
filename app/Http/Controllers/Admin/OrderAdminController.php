@@ -15,9 +15,7 @@ class OrderAdminController extends Controller
     {
         $today = Carbon::today()->toDateString();
 
-
-        // Haal de bestellingen op, gesorteerd op afhaaldatum of bezorgdatum
-
+        // Haal de afhaalbestellingen op, gesorteerd op afhaaldatum
         $pickupOrders = Order::with('items.product')
             ->where('type', 'afhalen')
             ->wherenotNull('paid_at')
@@ -25,7 +23,7 @@ class OrderAdminController extends Controller
             ->orderBy('pickup_date', 'asc')
             ->get();
 
-
+        // Haal de bezorgbestellingen op, gesorteerd op bezorgdatum
         $deliveryOrders = Order::with('items.product')
             ->where('type', 'bezorgen')
             ->wherenotNull('paid_at')
@@ -33,24 +31,9 @@ class OrderAdminController extends Controller
             ->orderBy('delivery_date', 'asc')
             ->get();
 
-        $deliveryChecker = app(\App\Services\DeliveryCheckerService::class);
-
-        foreach ($deliveryOrders as $order) {
-            $cacheKey = "city_lookup_{$order->postcode}_{$order->housenumber}_{$order->addition}";
-            $order->city = Cache::remember($cacheKey, now()->addDay(), function() use ($deliveryChecker, $order) {
-                $cityResponse = $deliveryChecker->check(
-                    $order->postcode,
-                    $order->housenumber,
-                    $order->addition,
-                    $order->type
-                );
-                return $cityResponse->woonplaats ?? null;
-            });
-        }
-
-        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders',));
+        // Geen DeliveryCheckerService meer nodig
+        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders'));
     }
-
 
 
     public function show(Order $order)

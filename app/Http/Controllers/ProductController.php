@@ -30,6 +30,8 @@ class ProductController extends Controller
         $postcode = $request->input('postcode', session('postcode'));
         $housenumber = $request->input('housenumber', session('housenumber'));
         $addition = $request->input('addition', session('addition'));
+        $woonplaats = $request->input('woonplaats', session('woonplaats'));
+
         // Check Belgische postcode: 4 cijfers, geen letters
         if (preg_match('/^[1-9][0-9]{3}$/', $postcode)) {
             $straatnaam = $request->input('straatnaam', session('straatnaam'));
@@ -52,7 +54,7 @@ class ProductController extends Controller
         $deliveryMessage = '';
 
         if ($deliveryMethod === 'bezorgen') {
-            $result = $deliveryChecker->check($postcode, $housenumber, $addition, $deliveryMethod, null, $straatnaam);
+            $result = $deliveryChecker->check($postcode, $housenumber, $addition, $deliveryMethod, null, $straatnaam, $woonplaats);
 
             $deliveryAllowed = $result->allowed;
             $deliveryMessage = $result->message;
@@ -166,7 +168,8 @@ class ProductController extends Controller
             'scheduleNextWeek',
             'weekNow',
             'weekNext',
-            'straatnaam'
+            'straatnaam',
+            'woonplaats',
         ));
     }
 }

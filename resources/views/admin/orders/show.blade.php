@@ -102,11 +102,11 @@
         </div>
 
         {{-- Bezorgadres (indien van toepassing) --}}
-        @if($order->type === 'bezorgen' && $order->street && $order->postcode && $order->housenumber)
+        @if($order->type === 'bezorgen' && $order->street && $order->postcode && $order->housenumber && $order->city)
             <div class="space-y-4">
                 <h2 class="text-2xl font-serif font-semibold text-gray-900 border-b pb-2">Bezorglocatie</h2>
                 <p class="text-gray-700">
-                    {{ $order->street }} {{$order->housenumber}} ,  {{ $order->postcode }} {{ $city }}
+                    {{ $order->street }} {{$order->housenumber}} ,  {{ $order->postcode }} {{ $order->city }}
                 </p>
             </div>
         @endif
