@@ -212,6 +212,7 @@ class DeliveryCheckerService
         Carbon::setLocale('nl');
         $now = Carbon::now();
 
+
         // Beschikbare datums
         $maxWeeksAhead = 2;
         $availableDates = collect();
@@ -233,6 +234,25 @@ class DeliveryCheckerService
                 ]);
             }
         }
+
+// Hardcoded vakantieperiode (2025 voorbeeld)
+        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-09-21')->startOfDay();
+        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-09-30')->endOfDay();
+
+// Filter vakantiedagen eruit
+        $availableDates = $availableDates->reject(function ($d) use ($holidayStart, $holidayEnd) {
+            $date = Carbon::parse($d['iso']);
+            return $date->between($holidayStart, $holidayEnd);
+        })->values();
+
+// Als alles wegvalt door vakantie -> melding
+        if ($availableDates->isEmpty()) {
+            $result->allowed = false;
+            $result->availableDates = collect();
+            $result->message = '🚫 Geen bezorgmomenten beschikbaar i.v.m. vakantie (21-09 t/m 30-09).';
+            return $result;
+        }
+
 
         // Vandaag eruit filteren
         $availableDates = $availableDates->reject(fn($d) => $d['iso'] === $now->format('Y-m-d'))->values();

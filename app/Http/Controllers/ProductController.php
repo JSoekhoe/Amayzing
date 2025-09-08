@@ -145,6 +145,21 @@ class ProductController extends Controller
                 'time' => $cityData['delivery_time'],
             ];
         }
+// Hardcoded vakantieperiode (voorbeeld 2025)
+        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-09-21')->startOfDay();
+        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-09-30')->endOfDay();
+
+// Filter huidige week
+        $scheduleThisWeek = collect($scheduleThisWeek)->reject(function ($item) use ($holidayStart, $holidayEnd) {
+            $date = Carbon::createFromFormat('d-m-Y', $item['date']);
+            return $date->between($holidayStart, $holidayEnd);
+        })->values()->all();
+
+// Filter volgende week
+        $scheduleNextWeek = collect($scheduleNextWeek)->reject(function ($item) use ($holidayStart, $holidayEnd) {
+            $date = Carbon::createFromFormat('d-m-Y', $item['date']);
+            return $date->between($holidayStart, $holidayEnd);
+        })->values()->all();
 
 
         return view('products.index', compact(

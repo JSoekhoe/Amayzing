@@ -66,6 +66,27 @@ class CheckoutController extends Controller
             }
         }
 
+        // Hardcoded vakantieperiode (voorbeeld 2025)
+        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-09-21')->startOfDay();
+        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-09-30')->endOfDay();
+
+// Filter pickup dates
+        $availablePickupDates = collect($availablePickupDates)->reject(function ($date) use ($holidayStart, $holidayEnd) {
+            $dateCarbon = Carbon::createFromFormat('Y-m-d', $date);
+            return $dateCarbon->between($holidayStart, $holidayEnd);
+        })->values()->all();
+
+// Kies de eerste beschikbare pickup date als default
+        $pickupDate = $availablePickupDates[0] ?? $today->format('Y-m-d');
+        $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
+
+// Herformatteer de lijst
+        $availablePickupDatesFormatted = collect($availablePickupDates)->mapWithKeys(function ($date) {
+            $formatted = \Carbon\Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY');
+            return [$date => $formatted];
+        })->toArray();
+
+
         // Kies de eerste beschikbare pickup date als default
         $pickupDate = $availablePickupDates[0] ?? $today->format('Y-m-d');
         $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
