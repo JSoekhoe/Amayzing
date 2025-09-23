@@ -31,7 +31,6 @@ class OrderAdminController extends Controller
             ->orderBy('delivery_date', 'asc')
             ->get();
 
-        // Geen DeliveryCheckerService meer nodig
         return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders'));
     }
 
