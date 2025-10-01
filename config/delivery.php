@@ -58,7 +58,7 @@ return [
             'delivery_time' => 'van 13:00 tot 20:30 uur',
         ],
         'denbosch' => [
-            'center' => ['lat' => 51.6900, 'lng' => 5.3037],
+            'center' => ['lat' => 51.6978, 'lng' => 5.3037],
             'delivery_day' => 'wednesday',
             'delivery_time' => 'van 13:00 tot 20:30 uur',
         ],
@@ -67,50 +67,53 @@ return [
             'delivery_day' => 'thursday',
             'delivery_time' => 'van 13:00 tot 20:30 uur',
         ],
+        'apeldoorn' => [
+            'center' => ['lat' => 52.2112, 'lng' => 5.9699],
+            'delivery_day' => 'friday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'leeuwarden' => [
+            'center' => ['lat' => 53.2012, 'lng' => 5.7999],
+            'delivery_day' => 'wednesday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'maastricht' => [
+            'center' => ['lat' => 50.8514, 'lng' => 5.6900],
+            'delivery_day' => 'wednesday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'breda' => [
+            'center' => ['lat' => 51.5719, 'lng' => 4.7682],
+            'delivery_day' => 'thursday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
     ],
 
     'fixed_schedule' => [
-        'friday' => 'amsterdam',
         'saturday' => 'denhaag',
         'sunday' => 'rotterdam',
     ],
 
     'delivery_schedule' => [
-        30 => [
+        41 => [
             'wednesday' => 'tilburg',
-            'thursday'  => 'denbosch',
+            'thursday'  => 'apeldoorn',
+            'friday' => 'amsterdam',
         ],
-        31 => [
-            'wednesday' => 'eindhoven',
-            'thursday'  => 'almere',
-        ],
-        32 => [
-            'wednesday' => 'groningen',
-            'thursday'  => 'amsterdam',
-        ],
-        33 => [
-            'wednesday' => 'tilburg',
-            'thursday'  => 'antwerpen',
-        ],
-        34 => [
-            'wednesday' => 'denbosch',
+        42 => [
+            'wednesday' => 'leeuwarden',
             'thursday'  => 'enschede',
+            'friday' => 'arnhem',
         ],
-        35 => [
-            'wednesday' => 'tilburg',
-            'thursday'  => 'groningen',
+        43 => [
+            'wednesday' => 'maastricht',
+            'thursday'  => 'breda',
+            'friday' => 'almere',
         ],
-        36 => [
+        44 => [
             'wednesday' => 'eindhoven',
-            'thursday'  => 'utrecht',
-        ],
-        37 => [
-            'wednesday' => 'almere',
             'thursday'  => 'antwerpen',
-        ],
-        38 => [
-            'wednesday' => 'arnhem',
-            'thursday'  => 'utrecht',
+            'friday' => 'utrecht',
         ],
     ],
 

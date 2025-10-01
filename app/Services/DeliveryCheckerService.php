@@ -237,7 +237,7 @@ class DeliveryCheckerService
 
 // Hardcoded vakantieperiode (2025 voorbeeld)
         $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-09-21')->startOfDay();
-        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-10-30')->endOfDay();
+        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-10-03')->endOfDay();
 
 // Filter vakantiedagen eruit
         $availableDates = $availableDates->reject(function ($d) use ($holidayStart, $holidayEnd) {
@@ -249,7 +249,7 @@ class DeliveryCheckerService
         if ($availableDates->isEmpty()) {
             $result->allowed = false;
             $result->availableDates = collect();
-            $result->message = '🚫 Geen bezorgmomenten beschikbaar i.v.m. vakantie (21-09 t/m 30-09).';
+            $result->message = '🚫 Geen bezorgmomenten beschikbaar';
             return $result;
         }
 
