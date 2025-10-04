@@ -45,8 +45,8 @@
                                         @endforeach
                                     </select>
                                     <button type="submit"
-                                            class="ml-2 px-3 py-1 bg-indigo-600 text-white rounded-md shadow">
-                                        Opslaan
+                                            class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-full shadow-md transition">
+                                    Opslaan
                                     </button>
                                 </form>
                             </td>

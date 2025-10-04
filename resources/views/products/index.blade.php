@@ -240,11 +240,6 @@
             {{ $products->withQueryString()->links() }}
         </div>
 
-
-        {{-- Paginering --}}
-        <div class="mt-10 flex justify-center">
-            {{ $products->withQueryString()->links() }}
-        </div>
     </section>
 </x-app-layout>
 <script>
