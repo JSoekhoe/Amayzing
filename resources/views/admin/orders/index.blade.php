@@ -15,6 +15,8 @@
                 </div>
             @endif
 
+
+
             {{-- Tabs --}}
             <div x-data="{ tab: 'bezorgen' }" class="space-y-6">
                 <div class="flex space-x-4 border-b border-gray-200 mb-4">
@@ -29,6 +31,23 @@
                         Afhalen
                     </button>
                 </div>
+                {{-- Filter dropdown alleen tonen als er bestellingen zijn --}}
+                @if($pickupOrders->count() || $deliveryOrders->count())
+                    <div class="mb-6">
+                        <form method="GET" action="{{ route('admin.orders.index') }}">
+                            <label for="week" class="mr-2 font-medium text-gray-700">Week:</label>
+                            <select name="week" id="week" onchange="this.form.submit()"
+                                    class="border-gray-300 rounded-lg shadow-sm">
+                                <option value="">Alle weken</option>
+                                @foreach($weeks as $week)
+                                    <option value="{{ $week['number'] }}" {{ $selectedWeek == $week['number'] ? 'selected' : '' }}>
+                                        {{ $week['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
+                @endif
 
                 {{-- Bezorgen --}}
                 <div x-show="tab === 'bezorgen'" class="space-y-6">
@@ -40,6 +59,35 @@
                     @include('admin.orders._order-list', ['orders' => $pickupOrders])
                 </div>
             </div>
+
+            {{-- Producten overzicht per dag --}}
+            @if(isset($salesByDay) && $salesByDay->count())
+                <div class="mt-12">
+                    <h3 class="text-2xl font-semibold mb-4">Verkochte producten per dag</h3>
+                    <div class="overflow-x-auto bg-white shadow rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Dag</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Product</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Aantal</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                            @foreach($salesByDay as $day => $products)
+                                @foreach($products as $productName => $quantity)
+                                    <tr>
+                                        <td class="px-6 py-3">{{ ucfirst($day) }}</td>
+                                        <td class="px-6 py-3">{{ $productName }}</td>
+                                        <td class="px-6 py-3">{{ $quantity }}</td>
+                                    </tr>
+                                @endforeach
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
 
         </div>
     </div>

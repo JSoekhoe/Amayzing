@@ -6,32 +6,74 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 
 class OrderAdminController extends Controller
 {
-
-    public function index()
+    public function index(Request $request)
     {
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today();
+        $selectedWeek = $request->input('week', null); // weeknummer uit dropdown
 
-        // Haal de afhaalbestellingen op, gesorteerd op afhaaldatum
-        $pickupOrders = Order::with('items.product')
+        // Alle bestellingen ophalen met betaaldatum
+        $allOrders = Order::whereNotNull('paid_at')->get();
+
+// Unieke weeknummers uit de pickup_date / delivery_date halen
+        $weeks = $allOrders->map(function ($order) {
+            $date = $order->delivery_date ?? $order->pickup_date;
+            return $date ? Carbon::parse($date)->startOfWeek() : null;
+        })
+            ->filter() // verwijder nulls
+            ->unique() // alleen unieke weken
+            ->sort()   // oplopend sorteren
+            ->map(function ($weekStart) {
+                return [
+                    'number' => $weekStart->weekOfYear,
+                    'label'  => 'Week ' . $weekStart->weekOfYear . ' (' . $weekStart->format('d M') . ' - ' . $weekStart->endOfWeek()->format('d M') . ')',
+                ];
+            })
+            ->values();
+
+        // Basisqueries
+        $queryPickup = Order::with('items.product')
             ->where('type', 'afhalen')
-            ->wherenotNull('paid_at')
-            ->orderByRaw("CASE WHEN pickup_date = ? THEN 0 ELSE 1 END", [$today])
-            ->orderBy('pickup_date', 'asc')
-            ->get();
+            ->whereNotNull('paid_at');
 
-        // Haal de bezorgbestellingen op, gesorteerd op bezorgdatum
-        $deliveryOrders = Order::with('items.product')
+        $queryDelivery = Order::with('items.product')
             ->where('type', 'bezorgen')
-            ->wherenotNull('paid_at')
-            ->orderByRaw("CASE WHEN delivery_date = ? THEN 0 ELSE 1 END", [$today])
-            ->orderBy('delivery_date', 'asc')
-            ->get();
+            ->whereNotNull('paid_at');
 
-        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders'));
+        // Filteren op weeknummer als gekozen
+        if ($selectedWeek) {
+            $queryPickup->whereRaw('WEEK(pickup_date, 1) = ?', [$selectedWeek]);
+            $queryDelivery->whereRaw('WEEK(delivery_date, 1) = ?', [$selectedWeek]);
+        }
+
+        $pickupOrders = $queryPickup->orderBy('pickup_date')->get();
+        $deliveryOrders = $queryDelivery->orderBy('delivery_date')->get();
+
+        // weekdagen in juiste volgorde (NL)
+        $dayOrder = [
+            'maandag', 'dinsdag', 'woensdag',
+            'donderdag', 'vrijdag', 'zaterdag', 'zondag'
+        ];
+
+        $salesByDay = Order::with(['items.product'])
+            ->whereNotNull('paid_at')
+            ->when($selectedWeek, function ($q) use ($selectedWeek) {
+                $q->whereRaw('WEEK(COALESCE(delivery_date, pickup_date), 1) = ?', [$selectedWeek]);
+            })
+            ->get()
+            ->flatMap->items
+            ->groupBy(fn($item) => Carbon::parse(
+                $item->order->delivery_date ?? $item->order->pickup_date
+            )->locale('nl_NL')->dayName)
+            ->map(fn($items) =>
+            $items->groupBy('product.name')->map->sum('quantity')
+            )
+            // hier sorteren volgens $dayOrder
+            ->sortBy(fn($_, $day) => array_search(strtolower($day), $dayOrder));
+
+        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders', 'salesByDay', 'weeks', 'selectedWeek'));
     }
 
 
@@ -43,7 +85,7 @@ class OrderAdminController extends Controller
             $order->postcode,
             $order->housenumber,
             $order->addition,
-            $order->type, // 'afhalen' of 'bezorgen'
+            $order->type,
         );
         $city = $cityResponse->woonplaats ?? null;
 
@@ -59,12 +101,9 @@ class OrderAdminController extends Controller
         return redirect()->back()->with('success', 'Status succesvol bijgewerkt.');
     }
 
-
     public function destroy(Order $order)
     {
         $order->delete();
         return redirect()->route('admin.orders.index')->with('success', 'Bestelling verwijderd.');
     }
-
-
 }
