@@ -20,6 +20,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Ordernr</th>
                         <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Naam</th>
+                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Berzorgadres</th>
                         <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Telefoon</th>
                         <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Tijdslot</th>
                         <th class="px-6 py-3"></th>
@@ -30,6 +31,11 @@
                         <tr>
                             <td class="px-6 py-4">{{ $order->id }}</td>
                             <td class="px-6 py-4">{{ $order->name }}</td>
+                            <td class="px-6 py-4">
+                                {{ $order->street }} {{ $order->housenumber }}<br>
+                                {{ $order->postcode }}<br>
+                                {{ $order->city }}
+                            </td>
                             <td class="px-6 py-4">{{ $order->phone }}</td>
                             <td class="px-6 py-4">
                                 {{ $order->timeslot ?? 'Nog niet toegewezen' }}
