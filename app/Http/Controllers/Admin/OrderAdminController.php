@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Mail\TimeslotNotification;
+use Illuminate\Support\Facades\Mail;
 
 class OrderAdminController extends Controller
 {
@@ -106,4 +108,56 @@ class OrderAdminController extends Controller
         $order->delete();
         return redirect()->route('admin.orders.index')->with('success', 'Bestelling verwijderd.');
     }
+
+    public function today()
+    {
+        $today = \Carbon\Carbon::today();
+
+        $orders = Order::whereDate('delivery_date', $today)
+            ->orWhereDate('pickup_date', $today)
+            ->whereNotNull('paid_at')
+            ->with('items.product')
+            ->orderByRaw('timeslot IS NULL DESC')  // NULL eerst
+            ->orderBy('timeslot')                 // daarna op tijdslot oplopend
+            ->get();
+
+
+        // Maak tijdslots (2 uur blokken vanaf 11:00 tot 20:30)
+        $slots = [];
+        $start = Carbon::createFromTime(11, 0);
+        $end = Carbon::createFromTime(20, 30);
+
+        while ($start->lessThan($end)) {
+            $slotStart = $start->copy();
+            $slotEnd = $start->copy()->addHours(2);
+
+            if ($slotEnd->greaterThan($end)) {
+                $slotEnd = $end;
+            }
+
+            $slots[] = $slotStart->format('H:i') . ' - ' . $slotEnd->format('H:i');
+            $start->addHours(2);
+        }
+
+        return view('admin.orders.today', compact('orders', 'slots'));
+    }
+
+    public function assignTimeslot(Request $request, Order $order)
+    {
+        $request->validate([
+            'timeslot' => 'required|string',
+        ]);
+
+        $order->update([
+            'timeslot' => $request->input('timeslot'),
+        ]);
+
+        // Verstuur e-mail naar de klant
+        if($order->email) {
+            Mail::to($order->email)->send(new TimeslotNotification($order, $order->timeslot));
+        }
+
+        return redirect()->back()->with('success', 'Tijdslot succesvol toegewezen en e-mail verstuurd!');
+    }
 }
+

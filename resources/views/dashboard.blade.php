@@ -23,6 +23,11 @@
                        class="block bg-gray-900 text-white text-lg px-6 py-4 rounded-xl hover:bg-gray-800 transition shadow text-center font-medium">
                         🧁 Producten beheren
                     </a>
+
+                    <a href="{{ route('admin.orders.today') }}"
+                          class="block bg-gray-900 text-white text-lg px-6 py-4 rounded-xl hover:bg-gray-800 transition shadow text-center font-medium">
+                        🕒 Bestellingen van vandaag
+                    </a>
                 </div>
             </div>
         </div>

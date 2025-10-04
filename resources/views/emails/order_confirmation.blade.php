@@ -118,6 +118,7 @@
                 <p>{!! $deliveryInfo->adresVolledig !!}</p>
             @endif
         <p><strong>Bezorgtijd:</strong> tussen <strong>{{ $deliveryInfo->nearestCityCenter['delivery_time'] ?? 'onbekend' }}</strong> en <strong>{{ config('delivery.delivery_end_time') }}</strong> uur.</p>
+        <p>Op de dag van bezorging ontvang je een Mail met het gepland tijdslot van de bezorger. Zo weet je precies wanneer je bestelling aankomt.</p>
     @endif
 
     <p><strong>Totaal incl. bezorgkosten:</strong> €{{ number_format($order->total_price, 2, ',', '.') }}</p>

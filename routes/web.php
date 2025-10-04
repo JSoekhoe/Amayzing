@@ -64,14 +64,15 @@ Route::get('/levering', function () {
     return view('delivery_schedule', compact('schedule', 'cities'));
 });
 // Admin routes (alleen voor beheerders)
-Route::prefix('admin')
-    ->middleware(['auth', 'is_admin'])
-    ->name('admin.')
+Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')
     ->group(function () {
         Route::get('/orders', [OrderAdminController::class, 'index'])->name('orders.index');
+        Route::get('/orders/today', [OrderAdminController::class, 'today'])->name('orders.today');
         Route::get('/orders/{order}', [OrderAdminController::class, 'show'])->name('orders.show');
         Route::patch('/orders/{order}/status', [OrderAdminController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::delete('/orders/{order}', [OrderAdminController::class, 'destroy'])->name('orders.destroy');
+        Route::post('/orders/{order}/timeslot', [OrderAdminController::class, 'assignTimeslot'])->name('orders.assignTimeslot');
+
 
         // Producten admin
         Route::resource('products', ProductAdminController::class);
