@@ -20,17 +20,21 @@ class OrderAdminController extends Controller
         $allOrders = Order::whereNotNull('paid_at')->get();
 
 // Unieke weeknummers uit de pickup_date / delivery_date halen
-        $weeks = $allOrders->map(function ($order) {
-            $date = $order->delivery_date ?? $order->pickup_date;
-            return $date ? Carbon::parse($date)->startOfWeek() : null;
-        })
+        $weeks = Order::whereNotNull('paid_at') // ✅ alleen betaalde bestellingen
+        ->get()
+            ->map(function ($order) {
+                $date = $order->delivery_date ?? $order->pickup_date;
+                return $date ? Carbon::parse($date)->startOfWeek() : null;
+            })
             ->filter() // verwijder nulls
             ->unique() // alleen unieke weken
             ->sort()   // oplopend sorteren
             ->map(function ($weekStart) {
                 return [
                     'number' => $weekStart->weekOfYear,
-                    'label'  => 'Week ' . $weekStart->weekOfYear . ' (' . $weekStart->format('d M') . ' - ' . $weekStart->endOfWeek()->format('d M') . ')',
+                    'label'  => 'Week ' . $weekStart->weekOfYear . ' (' .
+                        $weekStart->format('d M') . ' - ' .
+                        $weekStart->endOfWeek()->format('d M') . ')',
                 ];
             })
             ->values();
@@ -75,7 +79,38 @@ class OrderAdminController extends Controller
             // hier sorteren volgens $dayOrder
             ->sortBy(fn($_, $day) => array_search(strtolower($day), $dayOrder));
 
-        return view('admin.orders.index', compact('pickupOrders', 'deliveryOrders', 'salesByDay', 'weeks', 'selectedWeek'));
+        // Productverkopen per type bestelling
+        // Productverkopen per type bestelling (alleen betaalde)
+        $salesByType = [
+            'bezorgen' => collect(),
+            'afhalen' => collect(),
+        ];
+
+        $ordersForSales = Order::with(['items.product'])
+            ->whereNotNull('paid_at')
+            ->when($selectedWeek, function ($q) use ($selectedWeek) {
+                $q->whereRaw('WEEK(COALESCE(delivery_date, pickup_date), 1) = ?', [$selectedWeek]);
+            })
+            ->get();
+
+        foreach ($ordersForSales as $order) {
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $type = $order->type;
+                    $name = $item->product->name;
+                    $salesByType[$type][$name] = ($salesByType[$type][$name] ?? 0) + $item->quantity;
+                }
+            }
+        }
+
+        return view('admin.orders.index', compact(
+            'pickupOrders',
+            'deliveryOrders',
+            'salesByDay',
+            'salesByType',
+            'weeks',
+            'selectedWeek'
+        ));
     }
 
 

@@ -60,35 +60,60 @@
                 </div>
             </div>
 
-            {{-- Producten overzicht per dag --}}
-            @if(isset($salesByDay) && $salesByDay->count())
-                <div class="mt-12">
-                    <h3 class="text-2xl font-semibold mb-4">Verkochte producten per dag</h3>
-                    <div class="overflow-x-auto bg-white shadow rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Dag</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Product</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Aantal</th>
-                            </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                            @foreach($salesByDay as $day => $products)
-                                @foreach($products as $productName => $quantity)
+            {{-- Producten overzicht totaal --}}
+            {{-- Producten overzicht totaal --}}
+
+            @if(isset($salesByType))
+                {{-- BEZORGEN --}}
+                @if($salesByType['bezorgen']->count())
+                    <div class="mt-12">
+                        <h3 class="text-2xl font-semibold mb-4">Totaal verkochte producten (Bezorgen)</h3>
+                        <div class="overflow-x-auto bg-white shadow rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Product</th>
+                                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Aantal</th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                @foreach($salesByType['bezorgen'] as $productName => $quantity)
                                     <tr>
-                                        <td class="px-6 py-3">{{ ucfirst($day) }}</td>
                                         <td class="px-6 py-3">{{ $productName }}</td>
                                         <td class="px-6 py-3">{{ $quantity }}</td>
                                     </tr>
                                 @endforeach
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
 
+                {{-- AFHALEN --}}
+                @if($salesByType['afhalen']->count())
+                    <div class="mt-12">
+                        <h3 class="text-2xl font-semibold mb-4">Totaal verkochte producten (Afhalen)</h3>
+                        <div class="overflow-x-auto bg-white shadow rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Product</th>
+                                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Aantal</th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                @foreach($salesByType['afhalen'] as $productName => $quantity)
+                                    <tr>
+                                        <td class="px-6 py-3">{{ $productName }}</td>
+                                        <td class="px-6 py-3">{{ $quantity }}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+            @endif
         </div>
     </div>
 </x-app-layout>
