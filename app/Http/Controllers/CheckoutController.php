@@ -310,7 +310,7 @@ class CheckoutController extends Controller
 
         // Haal aantal producten per dag op, inclusief whole menu box weging
         $productCountMultipliers = [
-            11 => 7, // whole menu box telt als 7
+            20 => 9, // whole menu box telt als 7
         ];
 
 // Datum waarop afhalen of bezorgen plaatsvindt
