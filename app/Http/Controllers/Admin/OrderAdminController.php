@@ -114,7 +114,6 @@ class OrderAdminController extends Controller
         $today = \Carbon\Carbon::today();
 
         $orders = Order::whereDate('delivery_date', $today)
-            ->orWhereDate('pickup_date', $today)
             ->whereNotNull('paid_at')
             ->with('items.product')
             ->orderByRaw('timeslot IS NULL DESC')  // NULL eerst
