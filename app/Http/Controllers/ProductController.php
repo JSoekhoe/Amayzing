@@ -105,7 +105,7 @@ class ProductController extends Controller
         foreach ($weekDays as $day) {
             $date = $startOfThisWeek->copy()->next(ucfirst($day));
 
-            if (in_array($day, ['wednesday', 'thursday']) && isset($deliverySchedule[$weekNow][$day])) {
+            if (in_array($day, ['wednesday', 'thursday', 'friday',]) && isset($deliverySchedule[$weekNow][$day])) {
                 $cityKey = $deliverySchedule[$weekNow][$day];
             } elseif (isset($fixedSchedule[$day])) {
                 $cityKey = $fixedSchedule[$day];
