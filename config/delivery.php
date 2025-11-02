@@ -87,6 +87,21 @@ return [
             'delivery_day' => 'thursday',
             'delivery_time' => 'van 13:00 tot 20:30 uur',
         ],
+        'venlo' => [
+            'center' => ['lat' => 51.3704, 'lng' => 6.1724],
+            'delivery_day' => 'wednesday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'alkmaar' => [
+            'center' => ['lat' => 52.6324, 'lng' => 4.7534],
+            'delivery_day' => 'thursday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+        'bergenopzoom' => [
+            'center' => ['lat' => 51.4950, 'lng' => 4.2871],
+            'delivery_day' => 'friday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
     ],
 
     'fixed_schedule' => [
@@ -95,25 +110,25 @@ return [
     ],
 
     'delivery_schedule' => [
-        41 => [
-            'wednesday' => 'tilburg',
-            'thursday'  => 'apeldoorn',
-            'friday' => 'amsterdam',
+        45 => [
+            'wednesday' => 'denbosch',
+            'thursday'  => 'almere',
+            'friday' => 'venlo',
         ],
-        42 => [
-            'wednesday' => 'leeuwarden',
-            'thursday'  => 'enschede',
-            'friday' => 'arnhem',
-        ],
-        43 => [
-            'wednesday' => 'maastricht',
-            'thursday'  => 'breda',
-            'friday' => 'almere',
-        ],
-        44 => [
-            'wednesday' => 'eindhoven',
+        46 => [
+            'wednesday' => 'groningen',
             'thursday'  => 'antwerpen',
-            'friday' => 'utrecht',
+            'friday' => 'alkmaar',
+        ],
+        47 => [
+            'wednesday' => 'arnhem',
+            'thursday'  => 'bergenopzoom',
+            'friday' => 'tilburg',
+        ],
+        48 => [
+            'wednesday' => 'enschede',
+            'thursday'  => 'eindhoven',
+            'friday' => 'breda',
         ],
     ],
 
