@@ -236,8 +236,8 @@ class DeliveryCheckerService
         }
 
 // Hardcoded vakantieperiode (2025 voorbeeld)
-        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-09-21')->startOfDay();
-        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-10-03')->endOfDay();
+        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-12-27')->startOfDay();
+        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-12-31')->endOfDay();
 
 // Filter vakantiedagen eruit
         $availableDates = $availableDates->reject(function ($d) use ($holidayStart, $holidayEnd) {

@@ -110,25 +110,25 @@ return [
     ],
 
     'delivery_schedule' => [
-        45 => [
-            'wednesday' => 'denbosch',
-            'thursday'  => 'almere',
-            'friday' => 'venlo',
+        49 => [
+            'wednesday' => 'almere',
+            'thursday'  => 'denbosch',
+            'friday' => 'arnhem',
         ],
-        46 => [
-            'wednesday' => 'groningen',
-            'thursday'  => 'antwerpen',
-            'friday' => 'alkmaar',
+        50 => [
+            'wednesday' => 'tilburg',
+            'thursday'  => 'groningen',
+            'friday' => 'amsterdam',
         ],
-        47 => [
-            'wednesday' => 'arnhem',
-            'thursday'  => 'bergenopzoom',
-            'friday' => 'tilburg',
-        ],
-        48 => [
+        51 => [
             'wednesday' => 'enschede',
-            'thursday'  => 'eindhoven',
-            'friday' => 'breda',
+            'thursday'  => 'apeldoorn',
+            'friday' => 'amesfoort',
+        ],
+        52 => [
+            'wednesday' => 'breda',
+            'thursday'  => 'bergenopzoom',
+            'friday' => 'rotterdam',
         ],
     ],
 

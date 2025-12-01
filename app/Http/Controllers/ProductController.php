@@ -146,8 +146,8 @@ class ProductController extends Controller
             ];
         }
 // Hardcoded vakantieperiode (voorbeeld 2025)
-        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-09-21')->startOfDay();
-        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-10-03')->endOfDay();
+        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-12-27')->startOfDay();
+        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-12-31')->endOfDay();
 
 // Filter huidige week
         $scheduleThisWeek = collect($scheduleThisWeek)->reject(function ($item) use ($holidayStart, $holidayEnd) {
