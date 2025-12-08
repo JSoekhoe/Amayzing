@@ -102,6 +102,11 @@ return [
             'delivery_day' => 'friday',
             'delivery_time' => 'van 13:00 tot 20:30 uur',
         ],
+        'amersfoort' => [
+            'center' => ['lat' => 52.1561113, 'lng' => 5.3878266],
+            'delivery_day' => 'thursday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
     ],
 
     'fixed_schedule' => [
