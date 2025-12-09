@@ -123,7 +123,7 @@ return [
         50 => [
             'wednesday' => 'tilburg',
             'thursday'  => 'groningen',
-            'friday' => 'amsterdam',
+            'friday' => 'utrecht',
         ],
         51 => [
             'wednesday' => 'enschede',
