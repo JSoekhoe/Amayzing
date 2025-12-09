@@ -20,6 +20,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Je winkelwagen is leeg.');
         }
 
+        // Bepaal delivery method
         $deliveryMethod = 'afhalen';
         foreach ($cart as $productId => $types) {
             if (isset($types['bezorgen'])) {
@@ -43,16 +44,34 @@ class CheckoutController extends Controller
         $deliveryFee = ($deliveryMethod === 'bezorgen' && $total < 99) ? 5.50 : 0;
         $grandTotal = $total + $deliveryFee;
 
-        // Haal config pickup locaties op
-        $pickupLocationsConfig = config('pickup.locations');
-        $pickupLocations = collect($pickupLocationsConfig)->mapWithKeys(fn($location, $key) => [$key => $location['name']]);
-        $selectedPickupLocation = old('pickup_location') ?? array_key_first($pickupLocations->toArray());
-
-        $openingHours = $pickupLocationsConfig[$selectedPickupLocation]['hours'] ?? [];
-
+        // Huidige datum
         $today = Carbon::now();
 
-        // Beschikbare afhaaldagen (max 14 dagen vooruit) op basis van openingsuren config
+        // Haal pickup locaties op en filter volledig gesloten locaties
+        $pickupLocationsConfig = config('pickup.locations');
+        $pickupLocationsOpen = collect($pickupLocationsConfig)->filter(function($location) {
+            // Loop door elke dag in de openingsuren
+            foreach ($location['hours'] as $day => $hours) {
+                if (!empty($hours['open']) && $hours['open'] !== $hours['close']) {
+                    return true; // minimaal één dag open → locatie behouden
+                }
+            }
+            return false; // volledig gesloten → locatie verwijderen
+        });
+
+        $pickupLocations = $pickupLocationsOpen->mapWithKeys(fn($location, $key) => [$key => $location['name']]);
+
+        // Geselecteerde locatie
+        $selectedPickupLocation = old('pickup_location') ?? array_key_first($pickupLocations->toArray());
+
+        // Openingstijden van geselecteerde locatie
+        $openingHours = $pickupLocationsConfig[$selectedPickupLocation]['hours'] ?? [];
+
+        // Hardcoded vakantieperiode (27-31 december 2025)
+        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-12-27')->startOfDay();
+        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-12-31')->endOfDay();
+
+        // Beschikbare pickup-dagen (max 14 dagen vooruit), filter alleen open dagen en vakantie
         $availablePickupDates = [];
         for ($i = 0; $i < 14; $i++) {
             $date = $today->copy()->addDays($i);
@@ -60,60 +79,41 @@ class CheckoutController extends Controller
 
             if (isset($openingHours[$dayNameLoop])) {
                 $hours = $openingHours[$dayNameLoop];
-                if (!empty($hours['open']) && $hours['open'] !== $hours['close']) {
+                if (!empty($hours['open']) && $hours['open'] !== $hours['close'] &&
+                    !$date->between($holidayStart, $holidayEnd)) {
                     $availablePickupDates[] = $date->format('Y-m-d');
                 }
             }
         }
 
-        // Hardcoded vakantieperiode (voorbeeld 2025)
-        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-12-27')->startOfDay();
-        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-12-31')->endOfDay();
-
-// Filter pickup dates
-        $availablePickupDates = collect($availablePickupDates)->reject(function ($date) use ($holidayStart, $holidayEnd) {
-            $dateCarbon = Carbon::createFromFormat('Y-m-d', $date);
-            return $dateCarbon->between($holidayStart, $holidayEnd);
-        })->values()->all();
-
-// Kies de eerste beschikbare pickup date als default
-        $pickupDate = $availablePickupDates[0] ?? $today->format('Y-m-d');
+        // Kies eerste beschikbare pickup date als default
+        $pickupDate = old('pickup_date') ?? ($availablePickupDates[0] ?? $today->format('Y-m-d'));
         $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
-
-// Herformatteer de lijst
-        $availablePickupDatesFormatted = collect($availablePickupDates)->mapWithKeys(function ($date) {
-            $formatted = \Carbon\Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY');
-            return [$date => $formatted];
-        })->toArray();
-
-
-        // Kies de eerste beschikbare pickup date als default
-        $pickupDate = $availablePickupDates[0] ?? $today->format('Y-m-d');
-        $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
-        $availablePickupDatesFormatted = collect($availablePickupDates)->mapWithKeys(function ($date) {
-            $formatted = \Carbon\Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY');
-            return [$date => $formatted];
-        })->toArray();
         $dayNamePickup = strtolower($pickupDateCarbon->locale('nl')->dayName);
 
-        // Openingstijden voor de geselecteerde pickup date
-        $openingHoursPickupDay = $openingHours[$dayNamePickup] ?? null;
+        // Format voor dropdown
+        $availablePickupDatesFormatted = collect($availablePickupDates)->mapWithKeys(function ($date) {
+            $formatted = Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY');
+            return [$date => $formatted];
+        })->toArray();
 
-        $open = $openingHoursPickupDay['open'] ?? null;
-        $close = $openingHoursPickupDay['close'] ?? null;
-
+        // Tijdslots voor geselecteerde datum
         $timeSlots = [];
-        if ($open && $close && $open !== $close) {
+        if (isset($openingHours[$dayNamePickup]) && $openingHours[$dayNamePickup]['open'] !== $openingHours[$dayNamePickup]['close']) {
+            $open = $openingHours[$dayNamePickup]['open'];
+            $close = $openingHours[$dayNamePickup]['close'];
             $timeSlots = $this->generateTimeSlots($open, $close);
+
+            // Min pickup tijd vandaag
+            if ($pickupDate === $today->format('Y-m-d')) {
+                $minPickupTime = in_array($dayNamePickup, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
+                $timeSlots = array_filter($timeSlots, fn($slot) => $slot >= $minPickupTime);
+            }
         }
 
-        // Standaard pickup_time als eerste tijdslot, of null als gesloten
-        $pickupTime = $timeSlots[0] ?? null;
+        $pickupTime = old('pickup_time') ?? ($timeSlots[0] ?? null);
 
-        // Min pickup tijd op basis van huidige dag (optioneel, je kunt hier ook logica toepassen)
-        $currentDayName = strtolower($today->locale('nl')->dayName);
-        $minPickupTime = in_array($currentDayName, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
-
+        // Beschikbare bezorgdata
         $availableDeliveryDates = [];
         if ($deliveryMethod === 'bezorgen') {
             $checker = new \App\Services\DeliveryCheckerService();
@@ -123,13 +123,10 @@ class CheckoutController extends Controller
                 session('addition'),
                 'bezorgen'
             );
-
             if ($deliveryCheck->allowed) {
                 $availableDeliveryDates = $deliveryCheck->availableDates ?? [];
             }
         }
-
-
 
         return view('checkout.index', [
             'cart' => $cart,
@@ -138,23 +135,21 @@ class CheckoutController extends Controller
             'deliveryFee' => $deliveryFee,
             'grandTotal' => $grandTotal,
             'pickupLocations' => $pickupLocations,
+            'selectedPickupLocation' => $selectedPickupLocation,
+            'availablePickupDates' => $availablePickupDates,
+            'availablePickupDatesFormatted' => $availablePickupDatesFormatted,
+            'pickupDate' => $pickupDate,
             'timeSlots' => $timeSlots,
-            'minPickupTime' => $minPickupTime,
+            'selectedPickupTime' => $pickupTime,
+            'availableDeliveryDates' => $availableDeliveryDates,
             'straat' => session('straat', ''),
             'postcode' => session('postcode'),
             'woonplaats' => session('woonplaats'),
             'housenumber' => session('housenumber'),
             'addition' => session('addition'),
-            'availableDeliveryDates' => $availableDeliveryDates,
-            'availablePickupDates' => $availablePickupDates,
-            'selectedPickupLocation' => $selectedPickupLocation,
-            'availablePickupDatesFormatted' => $availablePickupDatesFormatted,
-            'selectedPickupTime' => $pickupTime,
+            'pickupLocationsConfig' => $pickupLocationsConfig,
         ]);
     }
-
-
-
 
     private function generateTimeSlots($start, $end, $interval = 30)
     {

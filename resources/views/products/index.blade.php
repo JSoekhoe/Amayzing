@@ -42,17 +42,32 @@
         @if ($deliveryMethod === 'afhalen' || !$deliveryMethod)
             <div class="max-w-6xl mx-auto mb-6 bg-gray-100 rounded-3xl shadow-sm p-6 text-gray-900">
                 <h3 class="font-serif text-xl font-semibold mb-4">Afhaalinformatie</h3>
-
                 <p class="mb-4">{{ $pickupMessage }}</p>
-
                 <ul class="space-y-6">
                     @foreach ($pickupLocations as $location)
-                        <li>
-                            <h4 class="font-semibold text-lg">{{ $location['name'] }}</h4>
-                            <p class="mb-2 whitespace-pre-line text-gray-800">{!! $location['days'] !!}</p>
+                        <li class="space-y-1">
+                            <div class="flex items-center">
+                                <h4 class="font-semibold text-lg m-0">
+                                    {{ $location['name'] }}@if(!empty($location['footnote']))<span class="text-gray-600 text-sm">*</span>@endif
+                                </h4>
+                            </div>
+                            <p class="text-gray-800">{!! $location['days'] !!}</p>
                         </li>
                     @endforeach
                 </ul>
+
+                {{-- Footnotes onderaan --}}
+                @php
+                    $footnotes = array_filter($pickupLocations, fn($loc) => !empty($loc['footnote']));
+                @endphp
+
+                @if (!empty($footnotes))
+                    <div class="mt-4 text-sm text-gray-600">
+                        @foreach ($footnotes as $location)
+                            <p><sup>*</sup> {{ $location['footnote'] }}</p>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -103,13 +118,14 @@
                         </div>
                     @endif
 
-                    <p class="mb-3 text-gray-800">
-                        We bezorgen binnen een straal van <strong>{{ $radiusKm }} km</strong> vanaf het centrum van elke stad.
-                        Bestellen kan tot <strong>{{ $orderCutoff }}</strong> de avond voor de bezorging.
-                        Bezorging vindt plaats <strong>{{ $deliveryStartWeekday }}</strong> op weekdagen, en <strong>{{ $deliveryStartWeekend }}</strong> in het weekend.
-                        Bezorging loopt tot uiterlijk <strong>{{ $deliveryEnd }}</strong>.
-                        Val je buiten de bezorgstraal of ben je te laat met bestellen? Bel dan naar <strong>06 44042554</strong> om te kijken of je je desserts alsnog kunt afhalen bij een afhaalpunt!
+                    <p class="mt-4 text-sm text-gray-600">
+                        We bezorgen binnen een straal van <strong class="text-gray-900 font-semibold">{{ $radiusKm }} km</strong> vanaf het centrum van elke stad.
+                        Bestellen kan tot <strong class="text-gray-900 font-semibold">{{ $orderCutoff }}</strong> de avond voor de bezorging.
+                        Bezorging vindt plaats <strong class="text-gray-900 font-semibold">{{ $deliveryStartWeekday }}</strong> op weekdagen, en <strong class="text-gray-900 font-semibold">{{ $deliveryStartWeekend }}</strong> in het weekend.
+                        Bezorging loopt tot uiterlijk <strong class="text-gray-900 font-semibold">{{ $deliveryEnd }}</strong>.
+                        Val je buiten de bezorgstraal of ben je te laat met bestellen? Bel dan naar <strong class="text-gray-900 font-semibold">06 44042554</strong> om te kijken of je je desserts alsnog kunt afhalen bij een afhaalpunt!
                     </p>
+
                 </aside>
 
                 {{-- Rechter kader: Postcode check formulier --}}
