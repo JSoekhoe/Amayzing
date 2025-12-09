@@ -43,6 +43,7 @@ class PaymentController extends Controller
                 "description" => "Bestelling #{$order->id}",
                 "redirectUrl" => route('thankyou', ['orderId' => $order->id], true),
                 'webhookUrl' => 'https://jamaytuller.com/webhook/mollie',
+//                'webhookUrl' => 'https://bc0838a81c7f.ngrok-free.app/webhook/mollie',
                 "metadata" => [
                     "order_id" => $order->id,
                 ],

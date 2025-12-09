@@ -378,19 +378,62 @@ class CheckoutController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'street' => $request->type === 'bezorgen' ? $request->straat : null,
-                'housenumber' => $request->type === 'bezorgen' ? $request->housenumber : null,
-                'addition' => $request->type === 'bezorgen' ? $request->addition : null,
-                'postcode' => $request->type === 'bezorgen' ? $request->postcode : null,
-                'city' => $request->type === 'bezorgen' ? $request->woonplaats : null,
+
+                // BEZORGEN → adres uit formulier (komt uit session)
+                'street' => $request->type === 'bezorgen'
+                    ? $request->straat
+                    : ($request->type === 'afhalen'
+                        ? config("pickup.locations.{$request->pickup_location}.street")
+                        : null),
+
+                'housenumber' => $request->type === 'bezorgen'
+                    ? $request->housenumber
+                    : ($request->type === 'afhalen'
+                        ? config("pickup.locations.{$request->pickup_location}.housenumber")
+                        : null),
+
+                'addition' => $request->type === 'bezorgen'
+                    ? $request->addition
+                    : ($request->type === 'afhalen'
+                        ? config("pickup.locations.{$request->pickup_location}.addition")
+                        : null),
+
+                'postcode' => $request->type === 'bezorgen'
+                    ? $request->postcode
+                    : ($request->type === 'afhalen'
+                        ? config("pickup.locations.{$request->pickup_location}.postcode")
+                        : null),
+
+                'city' => $request->type === 'bezorgen'
+                    ? $request->woonplaats
+                    : ($request->type === 'afhalen'
+                        ? config("pickup.locations.{$request->pickup_location}.city")
+                        : null),
+
                 'type' => $request->type,
-                'pickup_location' => $request->type === 'afhalen' ? $request->pickup_location : null,
-                'pickup_date' => $request->type === 'afhalen' ? $request->pickup_date : null,
-                'pickup_time' => $request->type === 'afhalen' ? $request->pickup_time : null,
-                'delivery_date' => $request->type === 'bezorgen' ? $request->delivery_date : null,
+
+                'pickup_location' =>
+                    $request->type === 'afhalen'
+                        ? $request->pickup_location
+                        : null,
+
+                'pickup_date' =>
+                    $request->type === 'afhalen'
+                        ? $request->pickup_date
+                        : null,
+
+                'pickup_time' =>
+                    $request->type === 'afhalen'
+                        ? $request->pickup_time
+                        : null,
+
+                'delivery_date' =>
+                    $request->type === 'bezorgen'
+                        ? $request->delivery_date
+                        : null,
+
                 'total_price' => $grandTotal,
             ]);
-
 
             foreach ($cart as $productId => $types) {
                 $product = $products->get($productId);
