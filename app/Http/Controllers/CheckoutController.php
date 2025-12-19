@@ -68,9 +68,16 @@ class CheckoutController extends Controller
         $openingHours = $pickupLocationsConfig[$selectedPickupLocation]['hours'] ?? [];
 
         // Hardcoded vakantieperiode (27-31 december 2025)
-        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-12-27')->startOfDay();
-        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-12-31')->endOfDay();
-
+        $holidayPeriods = [
+            [
+                'start' => Carbon::create(2025, 12, 20)->startOfDay(),
+                'end'   => Carbon::create(2025, 12, 20)->endOfDay(),
+            ],
+            [
+                'start' => Carbon::create(2025, 12, 27)->startOfDay(),
+                'end'   => Carbon::create(2025, 12, 31)->endOfDay(),
+            ],
+        ];
         // Beschikbare pickup-dagen (max 14 dagen vooruit), filter alleen open dagen en vakantie
         $availablePickupDates = [];
         for ($i = 0; $i < 14; $i++) {
@@ -79,9 +86,19 @@ class CheckoutController extends Controller
 
             if (isset($openingHours[$dayNameLoop])) {
                 $hours = $openingHours[$dayNameLoop];
-                if (!empty($hours['open']) && $hours['open'] !== $hours['close'] &&
-                    !$date->between($holidayStart, $holidayEnd)) {
-                    $availablePickupDates[] = $date->format('Y-m-d');
+                if (!empty($hours['open']) && $hours['open'] !== $hours['close']) {
+
+                    $isHoliday = false;
+                    foreach ($holidayPeriods as $period) {
+                        if ($date->between($period['start'], $period['end'])) {
+                            $isHoliday = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isHoliday) {
+                        $availablePickupDates[] = $date->format('Y-m-d');
+                    }
                 }
             }
         }
@@ -226,6 +243,7 @@ class CheckoutController extends Controller
                 $validator->errors()->add('minimum_order', "Het minimale bestelbedrag is €{$minimumOrderAmount}.");
             }
 
+            
 
             if ($request->type === 'afhalen') {
                 $location = $request->pickup_location;

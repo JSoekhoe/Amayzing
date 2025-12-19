@@ -146,19 +146,40 @@ class ProductController extends Controller
             ];
         }
 // Hardcoded vakantieperiode (voorbeeld 2025)
-        $holidayStart = Carbon::createFromFormat('Y-m-d', '2025-12-27')->startOfDay();
-        $holidayEnd   = Carbon::createFromFormat('Y-m-d', '2025-12-31')->endOfDay();
-
+        $holidayPeriods = [
+            [
+                'start' => Carbon::create(2025, 12, 20)->startOfDay(),
+                'end'   => Carbon::create(2025, 12, 20)->endOfDay(),
+            ],
+            [
+                'start' => Carbon::create(2025, 12, 27)->startOfDay(),
+                'end'   => Carbon::create(2025, 12, 31)->endOfDay(),
+            ],
+        ];
 // Filter huidige week
-        $scheduleThisWeek = collect($scheduleThisWeek)->reject(function ($item) use ($holidayStart, $holidayEnd) {
-            $date = Carbon::createFromFormat('d-m-Y', $item['date']);
-            return $date->between($holidayStart, $holidayEnd);
+        $scheduleThisWeek = collect($scheduleThisWeek)->reject(function ($item) use ($holidayPeriods) {
+            $date = Carbon::createFromFormat('d-m-Y', $item['date'])->startOfDay();
+
+            foreach ($holidayPeriods as $period) {
+                if ($date->between($period['start'], $period['end'])) {
+                    return true; // valt in vakantie
+                }
+            }
+
+            return false;
         })->values()->all();
 
 // Filter volgende week
-        $scheduleNextWeek = collect($scheduleNextWeek)->reject(function ($item) use ($holidayStart, $holidayEnd) {
-            $date = Carbon::createFromFormat('d-m-Y', $item['date']);
-            return $date->between($holidayStart, $holidayEnd);
+        $scheduleNextWeek = collect($scheduleNextWeek)->reject(function ($item) use ($holidayPeriods) {
+            $date = Carbon::createFromFormat('d-m-Y', $item['date'])->startOfDay();
+
+            foreach ($holidayPeriods as $period) {
+                if ($date->between($period['start'], $period['end'])) {
+                    return true; // valt in vakantie
+                }
+            }
+
+            return false;
         })->values()->all();
 
 
