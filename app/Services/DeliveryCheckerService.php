@@ -238,8 +238,8 @@ class DeliveryCheckerService
 // Hardcoded vakantieperiode (2025 voorbeeld)
         $holidayPeriods = [
             [
-                'start' => Carbon::create(2025, 12, 20)->startOfDay(),
-                'end'   => Carbon::create(2025, 12, 20)->endOfDay(),
+                'start' => Carbon::create(2026, 01, 01)->startOfDay(),
+                'end'   => Carbon::create(2026, 01, 31)->endOfDay(),
             ],
             [
                 'start' => Carbon::create(2025, 12, 27)->startOfDay(),

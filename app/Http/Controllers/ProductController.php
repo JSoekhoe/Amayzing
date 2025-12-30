@@ -148,8 +148,8 @@ class ProductController extends Controller
 // Hardcoded vakantieperiode (voorbeeld 2025)
         $holidayPeriods = [
             [
-                'start' => Carbon::create(2025, 12, 20)->startOfDay(),
-                'end'   => Carbon::create(2025, 12, 20)->endOfDay(),
+                'start' => Carbon::create(2026, 01, 01)->startOfDay(),
+                'end'   => Carbon::create(2026, 01, 31)->endOfDay(),
             ],
             [
                 'start' => Carbon::create(2025, 12, 27)->startOfDay(),
