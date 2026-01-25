@@ -71,7 +71,7 @@ class CheckoutController extends Controller
         $holidayPeriods = [
             [
                 'start' => Carbon::create(2026, 01, 01)->startOfDay(),
-                'end'   => Carbon::create(2026, 01, 31)->endOfDay(),
+                'end'   => Carbon::create(2026, 04, 31)->endOfDay(),
             ],
             [
                 'start' => Carbon::create(2025, 12, 27)->startOfDay(),
