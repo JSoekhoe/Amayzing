@@ -107,34 +107,38 @@ return [
             'delivery_day' => 'thursday',
             'delivery_time' => 'van 13:00 tot 20:30 uur',
         ],
+        'culemborg' => [
+            'center' => ['lat' => 51.9555674, 'lng' => 5.2271806],
+            'delivery_day' => 'thursday',
+            'delivery_time' => 'van 13:00 tot 20:30 uur',
+        ],
+
     ],
 
     'fixed_schedule' => [
-        'saturday' => 'denhaag',
         'sunday' => 'rotterdam',
     ],
 
     'delivery_schedule' => [
-        49 => [
-            'wednesday' => 'almere',
-            'thursday'  => 'denbosch',
-            'friday' => 'arnhem',
+        5 => [
+            'wednesday' => 'utrecht',
+            'thursday'  => 'breda',
+            'friday' => 'groningen',
+            'saturday' => 'denhaag',
         ],
-        50 => [
-            'wednesday' => 'tilburg',
-            'thursday'  => 'groningen',
-            'friday' => 'utrecht',
-        ],
-        51 => [
-            'wednesday' => 'enschede',
-            'thursday'  => 'apeldoorn',
-            'friday' => 'amersfoort',
-        ],
-        52 => [
-            'wednesday' => 'breda',
+        6 => [
+            'wednesday' => 'culemborg',
             'thursday'  => 'bergenopzoom',
-            'friday' => 'rotterdam',
+            'friday' => 'tilburg',
+            'saturday' => 'denhaag',
         ],
+        7 => [
+            'wednesday' => 'eindhoven',
+            'thursday'  => 'apeldoorn',
+            'friday' => 'arnhem',
+            'saturday' => 'enschede',
+        ],
+
     ],
 
     'pickup' => [

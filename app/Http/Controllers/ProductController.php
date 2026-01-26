@@ -105,7 +105,7 @@ class ProductController extends Controller
         foreach ($weekDays as $day) {
             $date = $startOfThisWeek->copy()->next(ucfirst($day));
 
-            if (in_array($day, ['wednesday', 'thursday', 'friday',]) && isset($deliverySchedule[$weekNow][$day])) {
+            if (in_array($day, ['wednesday', 'thursday', 'friday','saturday']) && isset($deliverySchedule[$weekNow][$day])) {
                 $cityKey = $deliverySchedule[$weekNow][$day];
             } elseif (isset($fixedSchedule[$day])) {
                 $cityKey = $fixedSchedule[$day];
@@ -129,7 +129,7 @@ class ProductController extends Controller
         foreach ($weekDays as $day) {
             $date = $startOfNextWeek->copy()->next(ucfirst($day));
 
-            if (in_array($day, ['wednesday', 'thursday' ,'friday']) && isset($deliverySchedule[$weekNext][$day])) {
+            if (in_array($day, ['wednesday', 'thursday' ,'friday','saturday']) && isset($deliverySchedule[$weekNext][$day])) {
                 $cityKey = $deliverySchedule[$weekNext][$day];
             } elseif (isset($fixedSchedule[$day])) {
                 $cityKey = $fixedSchedule[$day];
@@ -149,12 +149,9 @@ class ProductController extends Controller
         $holidayPeriods = [
             [
                 'start' => Carbon::create(2026, 01, 01)->startOfDay(),
-                'end'   => Carbon::create(2026, 04, 31)->endOfDay(),
+                'end'   => Carbon::create(2026, 01, 26)->endOfDay(),
             ],
-            [
-                'start' => Carbon::create(2025, 12, 27)->startOfDay(),
-                'end'   => Carbon::create(2025, 12, 31)->endOfDay(),
-            ],
+
         ];
 // Filter huidige week
         $scheduleThisWeek = collect($scheduleThisWeek)->reject(function ($item) use ($holidayPeriods) {

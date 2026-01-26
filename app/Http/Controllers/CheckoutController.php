@@ -71,11 +71,7 @@ class CheckoutController extends Controller
         $holidayPeriods = [
             [
                 'start' => Carbon::create(2026, 01, 01)->startOfDay(),
-                'end'   => Carbon::create(2026, 04, 31)->endOfDay(),
-            ],
-            [
-                'start' => Carbon::create(2025, 12, 27)->startOfDay(),
-                'end'   => Carbon::create(2025, 12, 31)->endOfDay(),
+                'end'   => Carbon::create(2026, 01, 26)->endOfDay(),
             ],
         ];
         // Beschikbare pickup-dagen (max 14 dagen vooruit), filter alleen open dagen en vakantie
