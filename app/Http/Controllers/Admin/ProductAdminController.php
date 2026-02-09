@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
+
 
 class ProductAdminController extends Controller
 {
@@ -27,11 +30,22 @@ class ProductAdminController extends Controller
             'price' => 'required|numeric|min:0',
             'pickup_stock' => 'required|integer|min:0',
             'delivery_stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // <--- nieuw
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:7168', // <--- nieuw
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
+            $file = $request->file('image');
+
+            // Maak image + verklein (max 2000px) + comprimeer
+            $img = Image::read($file)
+                ->scaleDown(width: 2000, height: 2000);
+
+            // Altijd als jpg wegschrijven (scheelt veel MB's)
+            $encoded = $img->toJpeg(quality: 80);
+
+            $path = 'products/' . uniqid('prod_') . '.jpg';
+            Storage::disk('public')->put($path, (string) $encoded);
+
             $validated['image'] = $path;
         }
 
@@ -53,11 +67,22 @@ class ProductAdminController extends Controller
             'price' => 'required|numeric|min:0',
             'pickup_stock' => 'required|integer|min:0',
             'delivery_stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // <--- nieuw
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:7168', // <--- nieuw
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
+            $file = $request->file('image');
+
+            // Maak image + verklein (max 2000px) + comprimeer
+            $img = Image::read($file)
+                ->scaleDown(width: 800, height: 800);
+
+            // Altijd als jpg wegschrijven (scheelt veel MB's)
+            $encoded = $img->toJpeg(quality: 85);
+
+            $path = 'products/' . uniqid('prod_') . '.jpg';
+            Storage::disk('public')->put($path, (string) $encoded);
+
             $validated['image'] = $path;
         }
 

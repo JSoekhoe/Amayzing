@@ -197,14 +197,23 @@
                 <article class="bg-white rounded-3xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition">
                     {{-- Productfoto --}}
                     @if ($product->image)
-                        <img src="{{ asset('storage/' . $product->image) }}"
-                              alt="{{ $product->name }}"
-                              class="rounded-xl mb-4 max-h-36 w-full object-contain bg-white">
+                        <div class="w-full h-[395px] overflow-hidden rounded-xl bg-white mb-4">
+                            <img
+                                src="{{ asset('storage/' . $product->image) }}"
+                                alt="{{ $product->name }}"
+                                class="w-full h-full object-cover"
+                            >
+                        </div>
                     @else
-                        <img src="{{ asset('images/placeholder.jpg') }}"
-                             alt="Geen afbeelding beschikbaar"
-                             class="rounded-xl mb-4 max-h-36 w-full object-cover">
+                        <div class="w-full h-[395px] overflow-hidden rounded-xl bg-gray-100 mb-4 flex items-center justify-center">
+                            <img
+                                src="{{ asset('images/placeholder.jpg') }}"
+                                alt="Geen afbeelding beschikbaar"
+                                class="w-full h-full object-cover"
+                            >
+                        </div>
                     @endif
+
 
                     {{-- Naam en prijs --}}
                     <h3 class="font-serif text-2xl text-gray-900 mb-3">{{ $product->name }}</h3>

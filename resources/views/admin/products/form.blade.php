@@ -86,6 +86,10 @@
         accept="image/*"
         class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-transparent"
     >
+
+    <p id="image-info" class="mt-2 text-sm text-gray-600"></p>
+    <img id="image-preview" class="mt-3 max-h-48 rounded hidden" alt="Voorbeeld">
+
     @error('image')
     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
     @enderror
