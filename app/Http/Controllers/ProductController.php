@@ -41,13 +41,21 @@ class ProductController extends Controller
         Log::info('Straatnaam ontvangen:', ['straatnaam' => $straatnaam]);
 
         // Haal producten op
+        $lastIds = [32, 33]; // <-- zet hier de 2 product IDs die als laatst moeten
+
         $query = Product::query();
+
         if ($deliveryMethod === 'afhalen') {
             $query->where('pickup_stock', '>', 0);
         } elseif ($deliveryMethod === 'bezorgen') {
             $query->where('delivery_stock', '>', 0);
         }
-        $products = $query->paginate(9)->withQueryString();
+
+        $products = $query
+            ->orderByRaw('CASE WHEN id IN ('.implode(',', $lastIds).') THEN 1 ELSE 0 END ASC')
+            ->orderByDesc('created_at')   // nieuw -> oud (binnen beide groepen)
+            ->paginate(9)
+            ->withQueryString();
 
         // Initieer bezorgstatus
         $deliveryAllowed = null;
