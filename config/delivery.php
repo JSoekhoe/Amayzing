@@ -120,25 +120,18 @@ return [
     ],
 
     'delivery_schedule' => [
-        5 => [
-            'wednesday' => 'utrecht',
-            'thursday'  => 'breda',
-            'friday' => 'groningen',
+        8 => [
+            'wednesday' => 'almere',
+            'thursday'  => 'tilburg',
+            'friday' => 'utrecht',
             'saturday' => 'denhaag',
         ],
-        6 => [
-            'wednesday' => 'culemborg',
-            'thursday'  => 'bergenopzoom',
-            'friday' => 'tilburg',
-            'saturday' => 'denhaag',
+        9 => [
+            'wednesday' => 'arnhem',
+            'thursday'  => 'groningen',
+            'friday' => 'bergenopzoom',
+            'saturday' => 'culemborg',
         ],
-        7 => [
-            'wednesday' => 'eindhoven',
-            'thursday'  => 'apeldoorn',
-            'friday' => 'arnhem',
-            'saturday' => 'enschede',
-        ],
-
     ],
 
     'pickup' => [
