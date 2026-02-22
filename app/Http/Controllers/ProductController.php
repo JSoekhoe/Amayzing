@@ -8,12 +8,10 @@ use App\Services\DeliveryCheckerService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
-
 class ProductController extends Controller
 {
     public function index(Request $request, DeliveryCheckerService $deliveryChecker)
     {
-
         $dayTranslations = [
             'monday'    => 'Maandag',
             'tuesday'   => 'Dinsdag',
@@ -26,23 +24,23 @@ class ProductController extends Controller
 
         $deliveryMethod = $request->input('delivery_method', 'afhalen');
 
-        // Haal postcode, huisnummer en toevoeging uit request, of fallback naar sessie
-        $postcode = $request->input('postcode', session('postcode'));
+        // postcode data (NL/BE)
+        $postcode    = $request->input('postcode', session('postcode'));
         $housenumber = $request->input('housenumber', session('housenumber'));
-        $addition = $request->input('addition', session('addition'));
-        $woonplaats = $request->input('woonplaats', session('woonplaats'));
+        $addition    = $request->input('addition', session('addition'));
+        $woonplaats  = $request->input('woonplaats', session('woonplaats'));
 
-        // Check Belgische postcode: 4 cijfers, geen letters
-        if (preg_match('/^[1-9][0-9]{3}$/', $postcode)) {
+        // Belgische postcode => straatnaam input
+        if ($postcode && preg_match('/^[1-9][0-9]{3}$/', $postcode)) {
             $straatnaam = $request->input('straatnaam', session('straatnaam'));
         } else {
-            $straatnaam = null;  // Of lege string
+            $straatnaam = null;
         }
+
         Log::info('Straatnaam ontvangen:', ['straatnaam' => $straatnaam]);
 
-        // Haal producten op
-        $lastIds = [32, 33]; // <-- zet hier de 2 product IDs die als laatst moeten
-
+        // producten
+        $lastIds = [32, 33];
         $query = Product::query();
 
         if ($deliveryMethod === 'afhalen') {
@@ -52,141 +50,131 @@ class ProductController extends Controller
         }
 
         $products = $query
-            ->orderByRaw('CASE WHEN id IN ('.implode(',', $lastIds).') THEN 1 ELSE 0 END ASC')
-            ->orderByDesc('created_at')   // nieuw -> oud (binnen beide groepen)
+            ->orderByRaw('CASE WHEN id IN (' . implode(',', $lastIds) . ') THEN 1 ELSE 0 END ASC')
+            ->orderByDesc('created_at')
             ->paginate(9)
             ->withQueryString();
 
-        // Initieer bezorgstatus
+        // bezorg check
         $deliveryAllowed = null;
         $deliveryMessage = '';
 
         if ($deliveryMethod === 'bezorgen') {
-            $result = $deliveryChecker->check($postcode, $housenumber, $addition, $deliveryMethod, null, $straatnaam, $woonplaats);
+            $result = $deliveryChecker->check(
+                $postcode,
+                $housenumber,
+                $addition,
+                $deliveryMethod,
+                null,
+                $straatnaam,
+                $woonplaats
+            );
 
             $deliveryAllowed = $result->allowed;
             $deliveryMessage = $result->message;
         }
 
-        // Configs ophalen
+        // config
+        $cities      = config('delivery.cities', []);
+        $dateSchedule = config('delivery.date_schedule', []);
 
-        $cities = config('delivery.cities');
-        $cities = array_map(function ($city) use ($dayTranslations) {
-            $city['delivery_day'] = $dayTranslations[strtolower($city['delivery_day'])] ?? $city['delivery_day'];
-            return $city;
-        }, $cities);
+        $radiusKm    = (float) config('delivery.max_distance_km', 10);
+        $orderCutoff = (string) config('delivery.last_order_time', '22:00');
+        $deliveryEnd = (string) config('delivery.delivery_end_time', '20:30');
 
-        $radiusKm = config('delivery.max_distance_km');
-        $orderCutoff = config('delivery.last_order_time');
-        $deliveryEnd = config('delivery.delivery_end_time');
-        $pickupLocations = config('pickup.locations');
-        $pickupMessage = config('pickup.message');
+        $weekdayStart = (string) config('delivery.weekday_start_time', '13:00');
+        $weekendStart = 'vanaf 11:00 uur'; // eventueel ook als config toevoegen
 
-        $weekdayCities = array_filter($cities, fn($city) =>
-        in_array(strtolower($city['delivery_day']), ['maandag','dinsdag','woensdag','donderdag','vrijdag'])
-        );
-        $weekendCities = array_filter($cities, fn($city) =>
-        in_array(strtolower($city['delivery_day']), ['zaterdag','zondag'])
-        );
+        $pickupLocations = config('pickup.locations', []);
+        $pickupMessage   = (string) config('pickup.message', '');
 
-        $deliveryStartWeekday = count($weekdayCities) ? reset($weekdayCities)['delivery_time'] : '-';
-        $deliveryStartWeekend = count($weekendCities) ? reset($weekendCities)['delivery_time'] : '-';
-        $deliverySchedule = config('delivery.delivery_schedule');
-        $fixedSchedule = config('delivery.fixed_schedule');
-        $cities = config('delivery.cities');
-
-// Weekdagen waarop bezorging mogelijk is
-        $weekDays = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-// Schedules voor huidige en volgende week
-        $scheduleThisWeek = [];
-        $scheduleNextWeek = [];
-
-        $cities = config('delivery.cities'); // opnieuw nodig voor mapping
-        $deliverySchedule = config('delivery.delivery_schedule');
-        $fixedSchedule = config('delivery.fixed_schedule');
-
-// Huidige week
-        $weekNow = now()->week;
-        $startOfThisWeek = now()->startOfWeek(Carbon::MONDAY);
-
-        foreach ($weekDays as $day) {
-            $date = $startOfThisWeek->copy()->next(ucfirst($day));
-
-            if (in_array($day, ['wednesday', 'thursday', 'friday','saturday']) && isset($deliverySchedule[$weekNow][$day])) {
-                $cityKey = $deliverySchedule[$weekNow][$day];
-            } elseif (isset($fixedSchedule[$day])) {
-                $cityKey = $fixedSchedule[$day];
-            } else {
-                continue;
-            }
-
-            $cityData = $cities[$cityKey];
-            $scheduleThisWeek[] = [
-                'day' => $dayTranslations[$day] ?? ucfirst($day),
-                'date' => $date->format('d-m-Y'),
-                'city' => ucfirst($cityKey),
-                'time' => $cityData['delivery_time'],
-            ];
-        }
-
-// Volgende week
-        $weekNext = now()->addWeek()->week;
-        $startOfNextWeek = now()->addWeek()->startOfWeek(Carbon::MONDAY);
-
-        foreach ($weekDays as $day) {
-            $date = $startOfNextWeek->copy()->next(ucfirst($day));
-
-            if (in_array($day, ['wednesday', 'thursday' ,'friday','saturday']) && isset($deliverySchedule[$weekNext][$day])) {
-                $cityKey = $deliverySchedule[$weekNext][$day];
-            } elseif (isset($fixedSchedule[$day])) {
-                $cityKey = $fixedSchedule[$day];
-            } else {
-                continue;
-            }
-
-            $cityData = $cities[$cityKey];
-            $scheduleNextWeek[] = [
-                'day' => $dayTranslations[$day] ?? ucfirst($day),
-                'date' => $date->format('d-m-Y'),
-                'city' => ucfirst($cityKey),
-                'time' => $cityData['delivery_time'],
-            ];
-        }
-// Hardcoded vakantieperiode (voorbeeld 2025)
+        // vakantieperiode
         $holidayPeriods = [
             [
-                'start' => Carbon::create(2026, 01, 01)->startOfDay(),
-                'end'   => Carbon::create(2026, 01, 26)->endOfDay(),
+                'start' => Carbon::create(2026, 1, 1)->startOfDay(),
+                'end'   => Carbon::create(2026, 1, 26)->endOfDay(),
             ],
-
         ];
-// Filter huidige week
-        $scheduleThisWeek = collect($scheduleThisWeek)->reject(function ($item) use ($holidayPeriods) {
-            $date = Carbon::createFromFormat('d-m-Y', $item['date'])->startOfDay();
 
+        // helper: is vakantie?
+        $isHoliday = function (Carbon $date) use ($holidayPeriods): bool {
             foreach ($holidayPeriods as $period) {
                 if ($date->between($period['start'], $period['end'])) {
-                    return true; // valt in vakantie
+                    return true;
                 }
             }
-
             return false;
-        })->values()->all();
+        };
 
-// Filter volgende week
-        $scheduleNextWeek = collect($scheduleNextWeek)->reject(function ($item) use ($holidayPeriods) {
-            $date = Carbon::createFromFormat('d-m-Y', $item['date'])->startOfDay();
+        // ✅ schedule builder: vaste offsets vanaf maandag (betrouwbaar)
+        $weekDays = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $dayOffsets = [
+            'wednesday' => 2,
+            'thursday'  => 3,
+            'friday'    => 4,
+            'saturday'  => 5,
+            'sunday'    => 6,
+        ];
 
-            foreach ($holidayPeriods as $period) {
-                if ($date->between($period['start'], $period['end'])) {
-                    return true; // valt in vakantie
+        $buildScheduleForWeek = function (Carbon $startOfWeek) use (
+            $weekDays,
+            $dayOffsets,
+            $dateSchedule,
+            $cities,
+            $dayTranslations,
+            $isHoliday,
+            $weekdayStart,
+            $weekendStart
+        ): array {
+            $items = [];
+
+            foreach ($weekDays as $day) {
+                $date = $startOfWeek->copy()->addDays($dayOffsets[$day])->startOfDay();
+                if ($isHoliday($date)) {
+                    continue;
                 }
+
+                $dateKey = $date->format('Y-m-d');
+
+                if (!isset($dateSchedule[$dateKey])) {
+                    continue;
+                }
+
+                $cityKey = (string) $dateSchedule[$dateKey];
+
+                // cityKey moet bestaan in cities
+                if (!isset($cities[$cityKey])) {
+                    continue;
+                }
+
+                // tijd: weekend vs weekday
+                $time = in_array($day, ['saturday', 'sunday'], true)
+                    ? ($cities[$cityKey]['delivery_time'] ?? $weekendStart)
+                    : ($cities[$cityKey]['delivery_time'] ?? "van {$weekdayStart} tot " . (string) config('delivery.delivery_end_time', '20:30') . " uur");
+
+                $items[] = [
+                    'day'  => $dayTranslations[$day] ?? ucfirst($day),
+                    'date' => $date->format('d-m-Y'),
+                    'city' => ucfirst($cityKey),
+                    'time' => $time,
+                ];
             }
 
-            return false;
-        })->values()->all();
+            return $items;
+        };
 
+        $startOfThisWeek = now()->startOfWeek(Carbon::MONDAY);
+        $startOfNextWeek = now()->copy()->addWeek()->startOfWeek(Carbon::MONDAY);
+
+        $scheduleThisWeek = $buildScheduleForWeek($startOfThisWeek);
+        $scheduleNextWeek = $buildScheduleForWeek($startOfNextWeek);
+
+        $weekNow  = $startOfThisWeek->week;
+        $weekNext = $startOfNextWeek->week;
+
+        // ✅ Zonder delivery_day: simpele teksten voor blade
+        $deliveryStartWeekday = "van {$weekdayStart} tot {$deliveryEnd} uur";
+        $deliveryStartWeekend = $weekendStart;
 
         return view('products.index', compact(
             'products',
@@ -196,13 +184,11 @@ class ProductController extends Controller
             'addition',
             'deliveryAllowed',
             'deliveryMessage',
-            'cities',
             'radiusKm',
             'orderCutoff',
             'deliveryEnd',
             'deliveryStartWeekday',
             'deliveryStartWeekend',
-            'deliverySchedule',
             'pickupLocations',
             'pickupMessage',
             'scheduleThisWeek',

@@ -8,7 +8,6 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-
 use Carbon\Carbon;
 
 class CheckoutController extends Controller
@@ -20,7 +19,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Je winkelwagen is leeg.');
         }
 
-        // Bepaal delivery method
+        // Bepaal delivery method op basis van cart
         $deliveryMethod = 'afhalen';
         foreach ($cart as $productId => $types) {
             if (isset($types['bezorgen'])) {
@@ -32,10 +31,12 @@ class CheckoutController extends Controller
         $productIds = array_keys($cart);
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
+        // Totaal berekenen
         $total = 0;
         foreach ($cart as $productId => $types) {
             $product = $products->get($productId);
             if (!$product) continue;
+
             foreach ($types as $type => $data) {
                 $total += $product->price * $data['quantity'];
             }
@@ -44,73 +45,69 @@ class CheckoutController extends Controller
         $deliveryFee = ($deliveryMethod === 'bezorgen' && $total < 99) ? 5.50 : 0;
         $grandTotal = $total + $deliveryFee;
 
-        // Huidige datum
         $today = Carbon::now();
 
-        // Haal pickup locaties op en filter volledig gesloten locaties
+        // ----------------------------
+        // Pickup locaties / openingstijden
+        // ----------------------------
         $pickupLocationsConfig = config('pickup.locations');
-        $pickupLocationsOpen = collect($pickupLocationsConfig)->filter(function($location) {
-            // Loop door elke dag in de openingsuren
+
+        $pickupLocationsOpen = collect($pickupLocationsConfig)->filter(function ($location) {
             foreach ($location['hours'] as $day => $hours) {
                 if (!empty($hours['open']) && $hours['open'] !== $hours['close']) {
-                    return true; // minimaal één dag open → locatie behouden
+                    return true;
                 }
             }
-            return false; // volledig gesloten → locatie verwijderen
+            return false;
         });
 
-        $pickupLocations = $pickupLocationsOpen->mapWithKeys(fn($location, $key) => [$key => $location['name']]);
+        $pickupLocations = $pickupLocationsOpen->mapWithKeys(fn ($location, $key) => [$key => $location['name']]);
 
-        // Geselecteerde locatie
         $selectedPickupLocation = old('pickup_location') ?? array_key_first($pickupLocations->toArray());
-
-        // Openingstijden van geselecteerde locatie
         $openingHours = $pickupLocationsConfig[$selectedPickupLocation]['hours'] ?? [];
 
-        // Hardcoded vakantieperiode (27-31 december 2025)
+        // Vakantieperiode
         $holidayPeriods = [
             [
-                'start' => Carbon::create(2026, 01, 01)->startOfDay(),
-                'end'   => Carbon::create(2026, 01, 26)->endOfDay(),
+                'start' => Carbon::create(2026, 1, 1)->startOfDay(),
+                'end'   => Carbon::create(2026, 1, 26)->endOfDay(),
             ],
         ];
-        // Beschikbare pickup-dagen (max 14 dagen vooruit), filter alleen open dagen en vakantie
+
+        // Beschikbare pickup-dagen (max 14 dagen vooruit)
         $availablePickupDates = [];
         for ($i = 0; $i < 14; $i++) {
             $date = $today->copy()->addDays($i);
             $dayNameLoop = strtolower($date->locale('nl')->dayName);
 
-            if (isset($openingHours[$dayNameLoop])) {
-                $hours = $openingHours[$dayNameLoop];
-                if (!empty($hours['open']) && $hours['open'] !== $hours['close']) {
+            if (!isset($openingHours[$dayNameLoop])) continue;
 
-                    $isHoliday = false;
-                    foreach ($holidayPeriods as $period) {
-                        if ($date->between($period['start'], $period['end'])) {
-                            $isHoliday = true;
-                            break;
-                        }
-                    }
+            $hours = $openingHours[$dayNameLoop];
+            if (empty($hours['open']) || $hours['open'] === $hours['close']) continue;
 
-                    if (!$isHoliday) {
-                        $availablePickupDates[] = $date->format('Y-m-d');
-                    }
+            $isHoliday = false;
+            foreach ($holidayPeriods as $period) {
+                if ($date->between($period['start'], $period['end'])) {
+                    $isHoliday = true;
+                    break;
                 }
             }
+            if ($isHoliday) continue;
+
+            $availablePickupDates[] = $date->format('Y-m-d');
         }
 
-        // Kies eerste beschikbare pickup date als default
+        // Default pickup date
         $pickupDate = old('pickup_date') ?? ($availablePickupDates[0] ?? $today->format('Y-m-d'));
         $pickupDateCarbon = Carbon::createFromFormat('Y-m-d', $pickupDate);
         $dayNamePickup = strtolower($pickupDateCarbon->locale('nl')->dayName);
 
-        // Format voor dropdown
         $availablePickupDatesFormatted = collect($availablePickupDates)->mapWithKeys(function ($date) {
             $formatted = Carbon::parse($date)->locale('nl')->isoFormat('dddd D MMMM YYYY');
             return [$date => $formatted];
         })->toArray();
 
-        // Tijdslots voor geselecteerde datum
+        // Tijdslots voor pickup
         $timeSlots = [];
         if (isset($openingHours[$dayNamePickup]) && $openingHours[$dayNamePickup]['open'] !== $openingHours[$dayNamePickup]['close']) {
             $open = $openingHours[$dayNamePickup]['open'];
@@ -120,26 +117,40 @@ class CheckoutController extends Controller
             // Min pickup tijd vandaag
             if ($pickupDate === $today->format('Y-m-d')) {
                 $minPickupTime = in_array($dayNamePickup, ['zaterdag', 'zondag']) ? '11:00' : '14:00';
-                $timeSlots = array_filter($timeSlots, fn($slot) => $slot >= $minPickupTime);
+                $timeSlots = array_values(array_filter($timeSlots, fn ($slot) => $slot >= $minPickupTime));
             }
         }
 
         $pickupTime = old('pickup_time') ?? ($timeSlots[0] ?? null);
 
-        // Beschikbare bezorgdata
+        // ----------------------------
+        // Beschikbare bezorgdata (via DeliveryCheckerService)
+        // ----------------------------
         $availableDeliveryDates = [];
         if ($deliveryMethod === 'bezorgen') {
-            $checker = new \App\Services\DeliveryCheckerService();
+            $checker = app(\App\Services\DeliveryCheckerService::class);
+
+            // ✅ Correcte call (named args) + session keys die jouw form gebruikt
             $deliveryCheck = $checker->check(
-                session('postcode'),
-                session('housenumber'),
-                session('addition'),
-                'bezorgen'
+                postcode: session('postcode'),
+                housenumber: session('housenumber'),
+                addition: session('addition'),
+                deliveryMethod: 'bezorgen',
+                straatnaam: session('straat') ?: session('straatnaam'),
+                woonplaats: session('woonplaats')
             );
+
             if ($deliveryCheck->allowed) {
                 $availableDeliveryDates = $deliveryCheck->availableDates ?? [];
             }
         }
+
+        // Form values uit session voor readonly velden
+        $straat = session('straat', '');
+        $postcode = session('postcode', '');
+        $woonplaats = session('woonplaats', '');
+        $housenumber = session('housenumber', '');
+        $addition = session('addition', '');
 
         return view('checkout.index', [
             'cart' => $cart,
@@ -147,6 +158,7 @@ class CheckoutController extends Controller
             'deliveryMethod' => $deliveryMethod,
             'deliveryFee' => $deliveryFee,
             'grandTotal' => $grandTotal,
+
             'pickupLocations' => $pickupLocations,
             'selectedPickupLocation' => $selectedPickupLocation,
             'availablePickupDates' => $availablePickupDates,
@@ -154,12 +166,16 @@ class CheckoutController extends Controller
             'pickupDate' => $pickupDate,
             'timeSlots' => $timeSlots,
             'selectedPickupTime' => $pickupTime,
+
             'availableDeliveryDates' => $availableDeliveryDates,
-            'straat' => session('straat', ''),
-            'postcode' => session('postcode'),
-            'woonplaats' => session('woonplaats'),
-            'housenumber' => session('housenumber'),
-            'addition' => session('addition'),
+
+            // ✅ deze keys gebruikt je blade
+            'straat' => $straat,
+            'postcode' => $postcode,
+            'woonplaats' => $woonplaats,
+            'housenumber' => $housenumber,
+            'addition' => $addition,
+
             'pickupLocationsConfig' => $pickupLocationsConfig,
         ]);
     }
@@ -182,6 +198,11 @@ class CheckoutController extends Controller
     {
         $cart = $request->session()->get('cart', []);
 
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Je winkelwagen is leeg.');
+        }
+
+        // Als bezorgen: adres uit session in request zetten (readonly inputs zijn ok)
         if ($request->type === 'bezorgen') {
             $request->merge([
                 'straat' => session('straat'),
@@ -192,10 +213,6 @@ class CheckoutController extends Controller
             ]);
         }
 
-        if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Je winkelwagen is leeg.');
-        }
-
         $pickupLocations = config('pickup.locations');
         $pickupLocationKeys = array_keys($pickupLocations);
 
@@ -204,9 +221,11 @@ class CheckoutController extends Controller
             'email' => 'required|email',
             'phone' => ['required', 'regex:/^\+?[0-9\s\-()]{6,20}$/'],
             'type' => 'required|in:afhalen,bezorgen',
+
             'pickup_location' => 'required_if:type,afhalen|in:' . implode(',', $pickupLocationKeys),
             'pickup_date' => 'required_if:type,afhalen|date_format:Y-m-d|after_or_equal:today',
             'pickup_time' => 'required_if:type,afhalen|date_format:H:i',
+
             'straat' => 'required_if:type,bezorgen|string|max:255',
             'postcode' => 'required_if:type,bezorgen|string|max:10',
             'woonplaats' => 'required_if:type,bezorgen|string|max:255',
@@ -220,7 +239,7 @@ class CheckoutController extends Controller
         $productIds = array_keys($cart);
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-        // Bereken totaalbedrag vóór validatie
+        // totaal vooraf
         $total = 0;
         foreach ($cart as $productId => $types) {
             $product = $products->get($productId);
@@ -232,21 +251,16 @@ class CheckoutController extends Controller
         }
 
         $validator->after(function ($validator) use ($cart, $products, $request, $pickupLocations, $total) {
-            // Check minimaal bestelbedrag
             $minimumOrderAmount = 40;
-
             if ($request->type === 'bezorgen' && $total < $minimumOrderAmount) {
                 $validator->errors()->add('minimum_order', "Het minimale bestelbedrag is €{$minimumOrderAmount}.");
             }
-
-
 
             if ($request->type === 'afhalen') {
                 $location = $request->pickup_location;
                 $pickupDate = $request->pickup_date;
                 $pickupTime = $request->pickup_time;
 
-                // Check dat locatie bestaat
                 if (!isset($pickupLocations[$location])) {
                     $validator->errors()->add('pickup_location', 'Ongeldige afhaallocatie.');
                     return;
@@ -287,10 +301,9 @@ class CheckoutController extends Controller
                     $validator->errors()->add('pickup_time', "Afhaaltijd moet binnen de openingstijden zijn ({$hours['open']} - {$hours['close']}).");
                 }
 
-                // Min pickup tijd vandaag (optioneel)
                 $today = Carbon::now()->startOfDay();
                 if ($pickupDateCarbon->isSameDay($today)) {
-                    $minPickupTime = in_array($dayName, ['dinsdag', 'woensdag','donderdag','vrijdag','zaterdag', 'zondag']) ? '11:00' : '14:00';
+                    $minPickupTime = in_array($dayName, ['dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']) ? '11:00' : '14:00';
                     $minTime = Carbon::createFromFormat('H:i', $minPickupTime);
                     if ($pickupTimeCarbon->lt($minTime)) {
                         $validator->errors()->add('pickup_time', "Afhaaltijd moet na $minPickupTime zijn.");
@@ -317,18 +330,12 @@ class CheckoutController extends Controller
             }
         });
 
-        // Haal aantal producten per dag op, inclusief whole menu box weging
+        // Max per dag check (alleen betaalde orders)
         $productCountMultipliers = [
-            20 => 9, // whole menu box telt als 7
+            20 => 9,
         ];
 
-// Datum waarop afhalen of bezorgen plaatsvindt
-        $orderDate = null;
-        if ($request->type === 'afhalen') {
-            $orderDate = $request->pickup_date;
-        } elseif ($request->type === 'bezorgen') {
-            $orderDate = $request->delivery_date;
-        }
+        $orderDate = $request->type === 'afhalen' ? $request->pickup_date : ($request->type === 'bezorgen' ? $request->delivery_date : null);
 
         if ($orderDate) {
             $dateColumn = $request->type === 'afhalen' ? 'pickup_date' : 'delivery_date';
@@ -338,23 +345,19 @@ class CheckoutController extends Controller
                 ->whereDate($dateColumn, '=', $orderDate)
                 ->pluck('id');
 
-
-            // Haal de orderitems op van deze orders
             $orderItems = OrderItem::whereIn('order_id', $ordersOfTheDay)->get();
 
-            // Bereken het totaal aantal verkochte producten, met multiplier per product
             $totalProductsSold = 0;
             foreach ($orderItems as $item) {
                 $multiplier = $productCountMultipliers[$item->product_id] ?? 1;
                 $totalProductsSold += $item->quantity * $multiplier;
             }
 
-            // Bereken ook de producten in deze nieuwe bestelling
             $newOrderProductCount = 0;
             foreach ($cart as $productId => $types) {
                 $multiplier = $productCountMultipliers[$productId] ?? 1;
                 foreach ($types as $type => $data) {
-                    if ($type === $request->type) { // Alleen producten voor dit type (afhalen of bezorgen)
+                    if ($type === $request->type) {
                         $newOrderProductCount += $data['quantity'] * $multiplier;
                     }
                 }
@@ -372,6 +375,7 @@ class CheckoutController extends Controller
             return redirect()->back()->withInput()->withErrors($validator);
         }
 
+        // total opnieuw + fee
         $total = 0;
         foreach ($cart as $productId => $types) {
             $product = $products->get($productId);
@@ -393,7 +397,7 @@ class CheckoutController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
 
-                // BEZORGEN → adres uit formulier (komt uit session)
+                // bezorgen: session data; afhalen: config locatie
                 'street' => $request->type === 'bezorgen'
                     ? $request->straat
                     : ($request->type === 'afhalen'
@@ -426,25 +430,11 @@ class CheckoutController extends Controller
 
                 'type' => $request->type,
 
-                'pickup_location' =>
-                    $request->type === 'afhalen'
-                        ? $request->pickup_location
-                        : null,
+                'pickup_location' => $request->type === 'afhalen' ? $request->pickup_location : null,
+                'pickup_date' => $request->type === 'afhalen' ? $request->pickup_date : null,
+                'pickup_time' => $request->type === 'afhalen' ? $request->pickup_time : null,
 
-                'pickup_date' =>
-                    $request->type === 'afhalen'
-                        ? $request->pickup_date
-                        : null,
-
-                'pickup_time' =>
-                    $request->type === 'afhalen'
-                        ? $request->pickup_time
-                        : null,
-
-                'delivery_date' =>
-                    $request->type === 'bezorgen'
-                        ? $request->delivery_date
-                        : null,
+                'delivery_date' => $request->type === 'bezorgen' ? $request->delivery_date : null,
 
                 'total_price' => $grandTotal,
             ]);
@@ -460,7 +450,6 @@ class CheckoutController extends Controller
                         'quantity' => $data['quantity'],
                         'price' => $product->price,
                         'type' => $type,
-
                     ]);
 
                     if ($type === 'afhalen') {
@@ -475,7 +464,6 @@ class CheckoutController extends Controller
 
             return redirect()->route('payment.checkout', ['orderId' => $order->id])
                 ->with('success', 'Bestelling succesvol geplaatst. Ga verder met betalen.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Checkout error: ' . $e->getMessage());

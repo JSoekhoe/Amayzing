@@ -4,104 +4,184 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
-use App\Mail\TimeslotNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\TimeslotNotification;
 
 class OrderAdminController extends Controller
 {
     public function index(Request $request)
     {
-        $today = Carbon::today();
-        $selectedWeek = $request->input('week', null); // weeknummer uit dropdown
+        // Alleen betaalde orders tonen, maar week = delivery/pickup date
+        $selectedWeekKey = $request->input('week'); // bv "2026-W08" of null
 
-        // Alle bestellingen ophalen met betaaldatum
-        $allOrders = Order::whereNotNull('paid_at')->get();
+        // ------------------------------------------------------------
+        // 1) Weeks dropdown: alleen betaalde orders + order_date bestaat
+        // ------------------------------------------------------------
+        $weeks = Cache::remember('admin_orders_weeks_paid_only', 600, function () {
+            $weekStarts = Order::query()
+                ->whereNotNull('paid_at')
+                ->whereRaw('COALESCE(delivery_date, pickup_date) IS NOT NULL')
+                ->selectRaw("
+                    DATE_SUB(
+                        COALESCE(delivery_date, pickup_date),
+                        INTERVAL WEEKDAY(COALESCE(delivery_date, pickup_date)) DAY
+                    ) as week_start
+                ")
+                ->distinct()
+                ->orderBy('week_start')
+                ->pluck('week_start');
 
-// Unieke weeknummers uit de pickup_date / delivery_date halen
-        $weeks = Order::whereNotNull('paid_at') // ✅ alleen betaalde bestellingen
-        ->get()
-            ->map(function ($order) {
-                $date = $order->delivery_date ?? $order->pickup_date;
-                return $date ? Carbon::parse($date)->startOfWeek() : null;
-            })
-            ->filter() // verwijder nulls
-            ->unique() // alleen unieke weken
-            ->sort()   // oplopend sorteren
-            ->map(function ($weekStart) {
+            return $weekStarts->map(function ($weekStart) {
+                $start = Carbon::parse($weekStart)->startOfWeek(); // maandag
+                $end   = $start->copy()->endOfWeek();              // zondag
+
                 return [
-                    'number' => $weekStart->weekOfYear,
-                    'label'  => 'Week ' . $weekStart->weekOfYear . ' (' .
-                        $weekStart->format('d M') . ' - ' .
-                        $weekStart->endOfWeek()->format('d M') . ')',
+                    'key'    => $start->format('o-\WW'), // "2026-W08"
+                    'number' => $start->weekOfYear,
+                    'label'  => 'Week ' . $start->weekOfYear . ' (' .
+                        $start->format('d M') . ' - ' . $end->format('d M') . ')',
                 ];
-            })
-            ->values();
+            })->values();
+        });
 
-        // Basisqueries
-        $queryPickup = Order::with('items.product')
+        // Zet selected week om naar start/end datum range (of null)
+        [$weekStart, $weekEnd] = $this->weekKeyToRange($selectedWeekKey);
+
+        // ------------------------------------------------------------
+        // 2) Orders: paginate + eager loading, betaald + filter op order_date
+        // ------------------------------------------------------------
+        $pickupQuery = Order::query()
             ->where('type', 'afhalen')
-            ->whereNotNull('paid_at');
+            ->whereNotNull('paid_at')
+            ->whereRaw('COALESCE(delivery_date, pickup_date) IS NOT NULL')
+            ->with(['items.product'])
+            ->when($weekStart && $weekEnd, function ($q) use ($weekStart, $weekEnd) {
+                $q->whereBetween(DB::raw("COALESCE(delivery_date, pickup_date)"), [
+                    $weekStart->toDateString(),
+                    $weekEnd->toDateString(),
+                ]);
+            })
+            ->orderByRaw("COALESCE(delivery_date, pickup_date) ASC");
 
-        $queryDelivery = Order::with('items.product')
+        $deliveryQuery = Order::query()
             ->where('type', 'bezorgen')
-            ->whereNotNull('paid_at');
-
-        // Filteren op weeknummer als gekozen
-        if ($selectedWeek) {
-            $queryPickup->whereRaw('WEEK(pickup_date, 1) = ?', [$selectedWeek]);
-            $queryDelivery->whereRaw('WEEK(delivery_date, 1) = ?', [$selectedWeek]);
-        }
-
-        $pickupOrders = $queryPickup->orderBy('pickup_date')->get();
-        $deliveryOrders = $queryDelivery->orderBy('delivery_date')->get();
-
-        // weekdagen in juiste volgorde (NL)
-        $dayOrder = [
-            'maandag', 'dinsdag', 'woensdag',
-            'donderdag', 'vrijdag', 'zaterdag', 'zondag'
-        ];
-
-        $salesByDay = Order::with(['items.product'])
             ->whereNotNull('paid_at')
-            ->when($selectedWeek, function ($q) use ($selectedWeek) {
-                $q->whereRaw('WEEK(COALESCE(delivery_date, pickup_date), 1) = ?', [$selectedWeek]);
+            ->whereRaw('COALESCE(delivery_date, pickup_date) IS NOT NULL')
+            ->with(['items.product'])
+            ->when($weekStart && $weekEnd, function ($q) use ($weekStart, $weekEnd) {
+                $q->whereBetween(DB::raw("COALESCE(delivery_date, pickup_date)"), [
+                    $weekStart->toDateString(),
+                    $weekEnd->toDateString(),
+                ]);
             })
-            ->get()
-            ->flatMap->items
-            ->groupBy(fn($item) => Carbon::parse(
-                $item->order->delivery_date ?? $item->order->pickup_date
-            )->locale('nl_NL')->dayName)
-            ->map(fn($items) =>
-            $items->groupBy('product.name')->map->sum('quantity')
-            )
-            // hier sorteren volgens $dayOrder
-            ->sortBy(fn($_, $day) => array_search(strtolower($day), $dayOrder));
+            ->orderByRaw("COALESCE(delivery_date, pickup_date) ASC");
 
-        // Productverkopen per type bestelling
-        // Productverkopen per type bestelling (alleen betaalde)
-        $salesByType = [
-            'bezorgen' => collect(),
-            'afhalen' => collect(),
-        ];
+        // verschillende page-names zodat paginate niet botst
+        $pickupOrders   = $pickupQuery->paginate(15, ['*'], 'pickup_page')->withQueryString();
+        $deliveryOrders = $deliveryQuery->paginate(15, ['*'], 'delivery_page')->withQueryString();
 
-        $ordersForSales = Order::with(['items.product'])
-            ->whereNotNull('paid_at')
-            ->when($selectedWeek, function ($q) use ($selectedWeek) {
-                $q->whereRaw('WEEK(COALESCE(delivery_date, pickup_date), 1) = ?', [$selectedWeek]);
-            })
-            ->get();
+        // ------------------------------------------------------------
+        // 3) Sales by day: alleen betaalde orders + filter op order_date
+        // ------------------------------------------------------------
+        $salesByDay = Cache::remember(
+            'admin_sales_by_day_paid_only_' . ($selectedWeekKey ?: 'all'),
+            300,
+            function () use ($weekStart, $weekEnd) {
+                $rows = DB::table('order_items')
+                    ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                    ->join('products', 'products.id', '=', 'order_items.product_id')
+                    ->whereNotNull('orders.paid_at')
+                    ->whereRaw('COALESCE(orders.delivery_date, orders.pickup_date) IS NOT NULL')
+                    ->when($weekStart && $weekEnd, function ($q) use ($weekStart, $weekEnd) {
+                        $q->whereBetween(
+                            DB::raw("COALESCE(orders.delivery_date, orders.pickup_date)"),
+                            [$weekStart->toDateString(), $weekEnd->toDateString()]
+                        );
+                    })
+                    ->selectRaw("
+                        WEEKDAY(COALESCE(orders.delivery_date, orders.pickup_date)) as weekday,
+                        products.name as product_name,
+                        SUM(order_items.quantity) as qty
+                    ")
+                    ->groupBy('weekday', 'products.name')
+                    ->orderBy('weekday')
+                    ->orderBy('products.name')
+                    ->get();
 
-        foreach ($ordersForSales as $order) {
-            foreach ($order->items as $item) {
-                if ($item->product) {
-                    $type = $order->type;
-                    $name = $item->product->name;
-                    $salesByType[$type][$name] = ($salesByType[$type][$name] ?? 0) + $item->quantity;
+                $weekdayMap = [
+                    0 => 'maandag',
+                    1 => 'dinsdag',
+                    2 => 'woensdag',
+                    3 => 'donderdag',
+                    4 => 'vrijdag',
+                    5 => 'zaterdag',
+                    6 => 'zondag',
+                ];
+
+                $out = collect();
+
+                foreach ($rows as $r) {
+                    $dayName = $weekdayMap[(int)$r->weekday] ?? 'onbekend';
+                    if (!$out->has($dayName)) {
+                        $out->put($dayName, collect());
+                    }
+                    $out[$dayName]->put($r->product_name, (int) $r->qty);
                 }
+
+                $dayOrder = ['maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag'];
+                return $out->sortBy(fn($_, $day) => array_search($day, $dayOrder));
             }
-        }
+        );
+
+        // ------------------------------------------------------------
+        // 4) Sales by type: alleen betaalde orders + filter op order_date
+        // ------------------------------------------------------------
+        $salesByType = Cache::remember(
+            'admin_sales_by_type_paid_only_' . ($selectedWeekKey ?: 'all'),
+            300,
+            function () use ($weekStart, $weekEnd) {
+                $rows = DB::table('order_items')
+                    ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                    ->join('products', 'products.id', '=', 'order_items.product_id')
+                    ->whereNotNull('orders.paid_at')
+                    ->whereRaw('COALESCE(orders.delivery_date, orders.pickup_date) IS NOT NULL')
+                    ->when($weekStart && $weekEnd, function ($q) use ($weekStart, $weekEnd) {
+                        $q->whereBetween(
+                            DB::raw("COALESCE(orders.delivery_date, orders.pickup_date)"),
+                            [$weekStart->toDateString(), $weekEnd->toDateString()]
+                        );
+                    })
+                    ->selectRaw("
+                        orders.type as order_type,
+                        products.name as product_name,
+                        SUM(order_items.quantity) as qty
+                    ")
+                    ->groupBy('orders.type', 'products.name')
+                    ->orderBy('products.name')
+                    ->get();
+
+                $out = [
+                    'bezorgen' => collect(),
+                    'afhalen'  => collect(),
+                ];
+
+                foreach ($rows as $r) {
+                    $type = $r->order_type;
+                    if (!isset($out[$type])) {
+                        $out[$type] = collect();
+                    }
+                    $out[$type]->put($r->product_name, (int) $r->qty);
+                }
+
+                return $out;
+            }
+        );
+
+        $selectedWeek = $selectedWeekKey;
 
         return view('admin.orders.index', compact(
             'pickupOrders',
@@ -113,6 +193,25 @@ class OrderAdminController extends Controller
         ));
     }
 
+    /**
+     * Converteer "2026-W08" naar [start,end] (Carbon) of [null,null]
+     */
+    private function weekKeyToRange(?string $weekKey): array
+    {
+        if (!$weekKey) return [null, null];
+
+        if (!preg_match('/^(\d{4})-W(\d{2})$/', $weekKey, $m)) {
+            return [null, null];
+        }
+
+        $year = (int) $m[1];
+        $week = (int) $m[2];
+
+        $start = Carbon::now()->setISODate($year, $week)->startOfWeek(); // maandag
+        $end   = $start->copy()->endOfWeek();                            // zondag
+
+        return [$start, $end];
+    }
 
     public function show(Order $order)
     {
@@ -146,24 +245,23 @@ class OrderAdminController extends Controller
 
     public function today()
     {
-        $today = \Carbon\Carbon::today();
+        $today = Carbon::today();
 
-        $orders = Order::whereDate('delivery_date', $today)
+        $orders = Order::query()
             ->whereNotNull('paid_at')
+            ->whereDate(DB::raw("COALESCE(delivery_date, pickup_date)"), $today)
             ->with('items.product')
-            ->orderByRaw('timeslot IS NULL DESC')  // NULL eerst
-            ->orderBy('timeslot')                 // daarna op tijdslot oplopend
+            ->orderByRaw('timeslot IS NULL DESC')
+            ->orderBy('timeslot')
             ->get();
 
-
-        // Maak tijdslots (2 uur blokken vanaf 11:00 tot 20:30)
         $slots = [];
         $start = Carbon::createFromTime(11, 0);
-        $end = Carbon::createFromTime(20, 30);
+        $end   = Carbon::createFromTime(20, 30);
 
         while ($start->lessThan($end)) {
             $slotStart = $start->copy();
-            $slotEnd = $start->copy()->addHours(2);
+            $slotEnd   = $start->copy()->addHours(2);
 
             if ($slotEnd->greaterThan($end)) {
                 $slotEnd = $end;
@@ -186,12 +284,10 @@ class OrderAdminController extends Controller
             'timeslot' => $request->input('timeslot'),
         ]);
 
-        // Verstuur e-mail naar de klant
-        if($order->email) {
+        if ($order->email) {
             Mail::to($order->email)->send(new TimeslotNotification($order, $order->timeslot));
         }
 
         return redirect()->back()->with('success', 'Tijdslot succesvol toegewezen en e-mail verstuurd!');
     }
 }
-

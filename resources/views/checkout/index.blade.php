@@ -105,8 +105,8 @@
                     </div>
                 @endforeach
             @endif
-            @if($deliveryMethod === 'bezorgen' && !empty($availableDeliveryDates))
-                <div>
+            @if($currentDeliveryMethod === 'bezorgen' && !empty($availableDeliveryDates))
+            <div>
                     <label for="delivery_date" class="block mb-2 font-serif font-semibold text-gray-700 text-lg">Bezorgdatum</label>
                     <select
                         name="delivery_date"

@@ -26,13 +26,24 @@
 
             <p><strong>Telefoon:</strong> {{ $order->phone }}</p>
             <p><strong>Totaalbedrag:</strong> €{{ number_format($order->total_price, 2, ',', '.') }}</p>
+            @php
+                $orderDate = $order->delivery_date ?? $order->pickup_date;
+            @endphp
+
             <p>
-                <strong>Bezorgdatum:</strong>
-                {{ \Carbon\Carbon::parse($order->delivery_date)->translatedFormat('l d-m-Y') }}
-                @if(\Carbon\Carbon::parse($order->delivery_date)->isToday())
-                    <span class="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Vandaag</span>
+                <strong>{{ $order->type === 'afhalen' ? 'Afhaaldatum' : 'Bezorgdatum' }}:</strong>
+
+                @if($orderDate)
+                    {{ \Carbon\Carbon::parse($orderDate)->translatedFormat('l d-m-Y') }}
+
+                    @if(\Carbon\Carbon::parse($orderDate)->isToday())
+                        <span class="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Vandaag</span>
+                    @endif
+                @else
+                    <span class="text-gray-500">—</span>
                 @endif
             </p>
+
             <p>
                 <strong>Betaald:</strong>
                 @if($order->paid_at)

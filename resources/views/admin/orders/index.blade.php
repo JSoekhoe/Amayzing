@@ -40,7 +40,7 @@
                                     class="border-gray-300 rounded-lg shadow-sm">
                                 <option value="">Alle weken</option>
                                 @foreach($weeks as $week)
-                                    <option value="{{ $week['number'] }}" {{ $selectedWeek == $week['number'] ? 'selected' : '' }}>
+                                    <option value="{{ $week['key'] }}" {{ $selectedWeek == $week['key'] ? 'selected' : '' }}>
                                         {{ $week['label'] }}
                                     </option>
                                 @endforeach
