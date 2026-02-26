@@ -249,7 +249,7 @@ class OrderAdminController extends Controller
 
         $orders = Order::query()
             ->whereNotNull('paid_at')
-            ->whereDate(DB::raw("COALESCE(delivery_date, pickup_date)"), $today)
+            ->whereDate(DB::raw("COALESCE(delivery_date)"), $today)
             ->with('items.product')
             ->orderByRaw('timeslot IS NULL DESC')
             ->orderBy('timeslot')
