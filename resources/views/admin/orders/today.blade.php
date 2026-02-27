@@ -108,7 +108,7 @@
                                         type="submit"
                                         class="shrink-0 whitespace-nowrap appearance-none inline-flex items-center px-4 py-2
                                                text-sm font-semibold rounded-lg
-                                               !text-white !bg-indigo-600 hover:!bg-indigo-700
+                                               text-gray-700 bg-transparent hover:bg-gray-700 hover:text-white
                                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition">
                                         Opslaan
                                     </button>
