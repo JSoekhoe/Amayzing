@@ -27,30 +27,29 @@
                     </tr>
                     </thead>
 
-                    <tbody class="divide-y divide-gray-200">
+                    {{-- ✅ 1 alpine scope voor hele tabel --}}
+                    <tbody x-data="{ openRow: null }" class="divide-y divide-gray-200">
                     @forelse($orders as $order)
                         @php
                             $items = $order->items ?? collect();
                             $totalQty = $items->sum('quantity');
                         @endphp
 
-                        {{-- Rij + uitklapbare detailrij per order --}}
-                        <tr x-data="{ open: false }" class="hover:bg-gray-50 transition">
+                        <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4 font-medium text-gray-800 align-top">
                                 <div class="flex items-center gap-3">
                                     <button
                                         type="button"
-                                        @click="open = !open"
+                                        @click="openRow = (openRow === {{ $order->id }} ? null : {{ $order->id }})"
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg
-                                               border border-gray-200 bg-white text-gray-700
-                                               hover:bg-gray-100 transition"
-                                        :aria-expanded="open.toString()"
+                                               border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 transition"
+                                        :aria-expanded="(openRow === {{ $order->id }}).toString()"
                                         aria-label="Toon/verberg producten"
                                     >
-                                        <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg x-show="openRow !== {{ $order->id }}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5" />
                                         </svg>
-                                        <svg x-show="open" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg x-show="openRow === {{ $order->id }}" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 12H5" />
                                         </svg>
                                     </button>
@@ -101,17 +100,16 @@
 
                                     <button type="submit"
                                             class="inline-flex items-center px-4 py-2 text-sm font-medium
-                                                   text-white bg-indigo-600 rounded-lg
-                                                   hover:bg-indigo-700 focus:outline-none focus:ring-2
-                                                   focus:ring-indigo-500 focus:ring-offset-1 transition">
+                                                   text-white bg-indigo-600 rounded-lg hover:bg-indigo-700
+                                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition">
                                         Opslaan
                                     </button>
                                 </form>
                             </td>
                         </tr>
 
-                        {{-- Uitklapbare productenrij --}}
-                        <tr x-show="open" x-cloak class="bg-white">
+                        {{-- ✅ nu werkt x-show altijd correct --}}
+                        <tr x-show="openRow === {{ $order->id }}" x-cloak class="bg-white">
                             <td colspan="6" class="px-6 pb-6">
                                 <div class="mt-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
                                     <div class="flex items-center justify-between mb-3">
@@ -155,7 +153,6 @@
                     </tbody>
                 </table>
             </div>
-
         </div>
     </div>
 </x-app-layout>
