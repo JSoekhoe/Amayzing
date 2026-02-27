@@ -28,9 +28,7 @@
                     </tr>
                     </thead>
 
-                    {{-- ⚠️ GEEN x-data hier --}}
                     <tbody class="divide-y divide-gray-200">
-
                     @forelse($orders as $order)
                         @php
                             $items = $order->items ?? collect();
@@ -39,16 +37,14 @@
 
                         {{-- ✅ eigen tbody per order (stabiel!) --}}
                         <tbody x-data="{ open: false }" class="divide-y divide-gray-200">
-
-                        {{-- Hoofdregel --}}
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4 align-top font-medium text-gray-800">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <button
                                         type="button"
                                         @click="open = !open"
-                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg
-                                                   border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 transition"
+                                        class="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-lg
+                                               border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 transition"
                                         :aria-expanded="open.toString()"
                                     >
                                         <svg x-show="!open" xmlns="http://www.w3.org/2000/svg"
@@ -91,29 +87,29 @@
                             </td>
 
                             <td class="px-6 py-4 align-top">
+                                {{-- ✅ keep-right layout, no wrap issues --}}
                                 <form method="POST"
                                       action="{{ route('admin.orders.assignTimeslot', $order) }}"
-                                      class="flex items-center gap-3">
+                                      class="flex items-center justify-end gap-3 whitespace-nowrap">
                                     @csrf
 
                                     <select name="timeslot"
                                             class="border-gray-300 rounded-lg shadow-sm text-sm
-                                                       focus:ring-indigo-500 focus:border-indigo-500">
+                                                   focus:ring-indigo-500 focus:border-indigo-500">
                                         @foreach($slots as $slot)
-                                            <option value="{{ $slot }}"
-                                                {{ $order->timeslot === $slot ? 'selected' : '' }}>
+                                            <option value="{{ $slot }}" {{ $order->timeslot === $slot ? 'selected' : '' }}>
                                                 {{ $slot }}
                                             </option>
                                         @endforeach
                                     </select>
 
-                                    {{-- ✅ NOOIT WIT --}}
+                                    {{-- ✅ HARD OVERRIDE: never white --}}
                                     <button
                                         type="submit"
-                                        class="appearance-none inline-flex items-center px-4 py-2
-                                                   text-sm font-medium text-white bg-indigo-600 rounded-lg
-                                                   hover:bg-indigo-700 focus:outline-none focus:ring-2
-                                                   focus:ring-indigo-500 focus:ring-offset-1 transition">
+                                        class="shrink-0 whitespace-nowrap appearance-none inline-flex items-center px-4 py-2
+                                               text-sm font-semibold rounded-lg
+                                               !text-white !bg-indigo-600 hover:!bg-indigo-700
+                                               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition">
                                         Opslaan
                                     </button>
                                 </form>
@@ -141,12 +137,12 @@
                                         <ul class="text-sm text-gray-700 space-y-2">
                                             @foreach($items as $item)
                                                 <li class="flex justify-between gap-4">
-                                                        <span class="truncate">
-                                                            {{ $item->product?->name ?? 'Product verwijderd' }}
-                                                        </span>
+                                                    <span class="truncate">
+                                                        {{ $item->product?->name ?? 'Product verwijderd' }}
+                                                    </span>
                                                     <span class="whitespace-nowrap text-gray-600">
-                                                            x{{ $item->quantity }}
-                                                        </span>
+                                                        x{{ $item->quantity }}
+                                                    </span>
                                                 </li>
                                             @endforeach
                                         </ul>
@@ -154,8 +150,8 @@
                                 </div>
                             </td>
                         </tr>
-
                         </tbody>
+
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-6 text-center text-gray-500">
@@ -163,7 +159,6 @@
                             </td>
                         </tr>
                         @endforelse
-
                         </tbody>
                 </table>
             </div>
