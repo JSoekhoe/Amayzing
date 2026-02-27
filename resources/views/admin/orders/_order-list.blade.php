@@ -20,12 +20,14 @@
         <div class="text-sm text-gray-700 space-y-1 mb-4">
             <p><strong>Klant:</strong> {{ $order->name }}</p>
             <p><strong>Type:</strong> {{ ucfirst($order->type) }}</p>
+
             @if($order->type === 'bezorgen' && $order->street && $order->postcode)
                 <p><strong>Adres:</strong> {{ $order->street }} {{ $order->housenumber }}, {{ $order->postcode }} {{ $order->city ?? '' }}</p>
             @endif
 
             <p><strong>Telefoon:</strong> {{ $order->phone }}</p>
             <p><strong>Totaalbedrag:</strong> €{{ number_format($order->total_price, 2, ',', '.') }}</p>
+
             @php
                 $orderDate = $order->delivery_date ?? $order->pickup_date;
             @endphp
@@ -53,6 +55,46 @@
                     <span class="text-red-600 font-medium">Nee</span>
                 @endif
             </p>
+        </div>
+
+        {{-- Producten (Optie 1: uitklapbaar) --}}
+        @php
+            $items = $order->items ?? collect();
+            $totalQty = $items->sum('quantity');
+        @endphp
+
+        <div x-data="{ open: false }" class="mt-4 border-t border-gray-100 pt-4">
+            <div class="flex items-center justify-between gap-4">
+                <p class="text-sm text-gray-700">
+                    <strong>Items:</strong> {{ $items->count() }} regels • {{ $totalQty }} stuks
+                </p>
+
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                    x-text="open ? 'Verberg producten' : 'Toon producten'">
+                </button>
+            </div>
+
+            <div x-show="open" x-cloak class="mt-3">
+                @if($items->isEmpty())
+                    <p class="text-sm text-gray-500">Geen producten gevonden.</p>
+                @else
+                    <ul class="text-sm text-gray-700 space-y-1">
+                        @foreach($items as $item)
+                            <li class="flex justify-between gap-4">
+                                <span class="truncate">
+                                    {{ $item->product?->name ?? 'Product verwijderd' }}
+                                </span>
+                                <span class="whitespace-nowrap text-gray-600">
+                                    x{{ $item->quantity }}
+                                </span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
         </div>
 
         {{-- Acties --}}

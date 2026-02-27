@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TimeslotNotification;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\TimeslotNotification;
 
 class OrderAdminController extends Controller
 {
     public function index(Request $request)
     {
-        // Alleen betaalde orders tonen, maar week = delivery/pickup date
+        // Alleen betaalde orders, week gebaseerd op delivery/pickup
         $selectedWeekKey = $request->input('week'); // bv "2026-W08" of null
 
         // ------------------------------------------------------------
@@ -51,6 +51,9 @@ class OrderAdminController extends Controller
         // Zet selected week om naar start/end datum range (of null)
         [$weekStart, $weekEnd] = $this->weekKeyToRange($selectedWeekKey);
 
+        // Handige expressie voor order_date
+        $orderDateExpr = DB::raw("COALESCE(delivery_date, pickup_date)");
+
         // ------------------------------------------------------------
         // 2) Orders: paginate + eager loading, betaald + filter op order_date
         // ------------------------------------------------------------
@@ -59,28 +62,28 @@ class OrderAdminController extends Controller
             ->whereNotNull('paid_at')
             ->whereRaw('COALESCE(delivery_date, pickup_date) IS NOT NULL')
             ->with(['items.product'])
-            ->when($weekStart && $weekEnd, function ($q) use ($weekStart, $weekEnd) {
-                $q->whereBetween(DB::raw("COALESCE(delivery_date, pickup_date)"), [
+            ->when($weekStart && $weekEnd, function ($q) use ($orderDateExpr, $weekStart, $weekEnd) {
+                $q->whereBetween($orderDateExpr, [
                     $weekStart->toDateString(),
                     $weekEnd->toDateString(),
                 ]);
             })
-            ->orderByRaw("COALESCE(delivery_date, pickup_date) ASC");
+            ->orderBy($orderDateExpr);
 
         $deliveryQuery = Order::query()
             ->where('type', 'bezorgen')
             ->whereNotNull('paid_at')
             ->whereRaw('COALESCE(delivery_date, pickup_date) IS NOT NULL')
             ->with(['items.product'])
-            ->when($weekStart && $weekEnd, function ($q) use ($weekStart, $weekEnd) {
-                $q->whereBetween(DB::raw("COALESCE(delivery_date, pickup_date)"), [
+            ->when($weekStart && $weekEnd, function ($q) use ($orderDateExpr, $weekStart, $weekEnd) {
+                $q->whereBetween($orderDateExpr, [
                     $weekStart->toDateString(),
                     $weekEnd->toDateString(),
                 ]);
             })
-            ->orderByRaw("COALESCE(delivery_date, pickup_date) ASC");
+            ->orderBy($orderDateExpr);
 
-        // verschillende page-names zodat paginate niet botst
+        // Verschillende page-names zodat paginate niet botst
         $pickupOrders   = $pickupQuery->paginate(15, ['*'], 'pickup_page')->withQueryString();
         $deliveryOrders = $deliveryQuery->paginate(15, ['*'], 'delivery_page')->withQueryString();
 
@@ -125,7 +128,7 @@ class OrderAdminController extends Controller
                 $out = collect();
 
                 foreach ($rows as $r) {
-                    $dayName = $weekdayMap[(int)$r->weekday] ?? 'onbekend';
+                    $dayName = $weekdayMap[(int) $r->weekday] ?? 'onbekend';
                     if (!$out->has($dayName)) {
                         $out->put($dayName, collect());
                     }
@@ -223,6 +226,7 @@ class OrderAdminController extends Controller
             $order->addition,
             $order->type,
         );
+
         $city = $cityResponse->woonplaats ?? null;
 
         return view('admin.orders.show', compact('order', 'city'));
@@ -245,16 +249,19 @@ class OrderAdminController extends Controller
 
     public function today()
     {
-        $today = Carbon::today();
+        $today = Carbon::today()->toDateString();
 
+        // Alleen betaalde bezorg-orders van vandaag
         $orders = Order::query()
             ->whereNotNull('paid_at')
-            ->whereDate(DB::raw("COALESCE(delivery_date)"), $today)
+            ->where('type', 'bezorgen')
+            ->whereDate('delivery_date', $today)
             ->with('items.product')
             ->orderByRaw('timeslot IS NULL DESC')
             ->orderBy('timeslot')
             ->get();
 
+        // Tijdslots (2 uur blokken vanaf 11:00 tot 20:30)
         $slots = [];
         $start = Carbon::createFromTime(11, 0);
         $end   = Carbon::createFromTime(20, 30);

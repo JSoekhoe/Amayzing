@@ -15,29 +15,37 @@
                 </div>
             @endif
 
-
-
             {{-- Tabs --}}
             <div x-data="{ tab: 'bezorgen' }" class="space-y-6">
                 <div class="flex space-x-4 border-b border-gray-200 mb-4">
-                    <button @click="tab = 'bezorgen'"
-                            :class="tab === 'bezorgen' ? 'border-indigo-500 text-indigo-600' : 'text-gray-500'"
-                            class="pb-2 px-4 border-b-2 font-medium">
+                    <button
+                        type="button"
+                        @click="tab = 'bezorgen'"
+                        :class="tab === 'bezorgen' ? 'border-indigo-500 text-indigo-600' : 'text-gray-500 border-transparent'"
+                        class="pb-2 px-4 border-b-2 font-medium">
                         Bezorgen
                     </button>
-                    <button @click="tab = 'afhalen'"
-                            :class="tab === 'afhalen' ? 'border-indigo-500 text-indigo-600' : 'text-gray-500'"
-                            class="pb-2 px-4 border-b-2 font-medium">
+
+                    <button
+                        type="button"
+                        @click="tab = 'afhalen'"
+                        :class="tab === 'afhalen' ? 'border-indigo-500 text-indigo-600' : 'text-gray-500 border-transparent'"
+                        class="pb-2 px-4 border-b-2 font-medium">
                         Afhalen
                     </button>
                 </div>
+
                 {{-- Filter dropdown alleen tonen als er bestellingen zijn --}}
                 @if($pickupOrders->count() || $deliveryOrders->count())
                     <div class="mb-6">
                         <form method="GET" action="{{ route('admin.orders.index') }}">
                             <label for="week" class="mr-2 font-medium text-gray-700">Week:</label>
-                            <select name="week" id="week" onchange="this.form.submit()"
-                                    class="border-gray-300 rounded-lg shadow-sm">
+                            <select
+                                name="week"
+                                id="week"
+                                onchange="this.form.submit()"
+                                class="border-gray-300 rounded-lg shadow-sm"
+                            >
                                 <option value="">Alle weken</option>
                                 @foreach($weeks as $week)
                                     <option value="{{ $week['key'] }}" {{ $selectedWeek == $week['key'] ? 'selected' : '' }}>
@@ -45,24 +53,40 @@
                                     </option>
                                 @endforeach
                             </select>
+
+                            {{-- handig: reset knop --}}
+                            @if(!empty($selectedWeek))
+                                <a href="{{ route('admin.orders.index') }}"
+                                   class="ml-3 text-sm text-gray-600 underline hover:text-gray-900">
+                                    Reset
+                                </a>
+                            @endif
                         </form>
                     </div>
                 @endif
 
                 {{-- Bezorgen --}}
-                <div x-show="tab === 'bezorgen'" class="space-y-6">
+                <div x-show="tab === 'bezorgen'" x-cloak class="space-y-6">
                     @include('admin.orders._order-list', ['orders' => $deliveryOrders])
+
+                    {{-- Pagination bezorgen --}}
+                    <div class="mt-6">
+                        {{ $deliveryOrders->links() }}
+                    </div>
                 </div>
 
                 {{-- Afhalen --}}
-                <div x-show="tab === 'afhalen'" class="space-y-6">
+                <div x-show="tab === 'afhalen'" x-cloak class="space-y-6">
                     @include('admin.orders._order-list', ['orders' => $pickupOrders])
+
+                    {{-- Pagination afhalen --}}
+                    <div class="mt-6">
+                        {{ $pickupOrders->links() }}
+                    </div>
                 </div>
             </div>
 
             {{-- Producten overzicht totaal --}}
-            {{-- Producten overzicht totaal --}}
-
             @if(isset($salesByType))
                 {{-- BEZORGEN --}}
                 @if($salesByType['bezorgen']->count())
@@ -114,6 +138,7 @@
                     </div>
                 @endif
             @endif
+
         </div>
     </div>
 </x-app-layout>
