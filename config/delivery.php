@@ -43,6 +43,9 @@ return [
         'denhaag' => [
             'center' => ['lat' => 52.0705, 'lng' => 4.3007],
         ],
+        'deventer' => [
+            'center' => ['lat' => 52.2550, 'lng' => 6.1639],
+        ],
         'eindhoven' => [
             'center' => ['lat' => 51.4416, 'lng' => 5.4697],
         ],
@@ -61,6 +64,9 @@ return [
         'leiden' => [
             'center' => ['lat' => 52.160114, 'lng' => 4.497010],
         ],
+        'lelystad' => [
+            'center' => ['lat' => 52.5185, 'lng' => 5.4714],
+        ],
         'maastricht' => [
             'center' => ['lat' => 50.8514, 'lng' => 5.6900],
         ],
@@ -78,24 +84,30 @@ return [
         ],
     ],
 
-    // ✅ datum-gedreven bezorgplanning
+    // datum-gedreven bezorgplanning
     'date_schedule' => [
-        '2026-02-25' => 'arnhem',
-        '2026-02-26' => 'groningen',
-        '2026-02-27' => 'bergenopzoom',
-        '2026-02-28' => 'culemborg',
-        '2026-03-01' => 'rotterdam',
+        '2026-03-18' => 'denbosch',
+        '2026-03-19' => 'enschede',
+        '2026-03-20' => 'amersfoort',
+        '2026-03-21' => 'denhaag',
+        '2026-03-22' => 'rotterdam',
 
-        '2026-03-04' => 'hilversum',
-        '2026-03-05' => 'breda',
-        '2026-03-06' => 'apeldoorn',
-        '2026-03-07' => 'rotterdam',
-        '2026-03-08' => 'antwerpen',
+        '2026-03-25' => 'groningen',
+        '2026-03-26' => 'utrecht',
+        '2026-03-27' => 'tilburg',
+        '2026-03-28' => 'arnhem',
+        '2026-03-29' => 'rotterdam',
 
-        '2026-03-11' => 'denbosch',
-        '2026-03-12' => 'leiden',
-        '2026-03-13' => 'utrecht',
-        '2026-03-14' => 'denhaag',
-        '2026-03-15' => 'rotterdam',
+        '2026-04-01' => 'apeldoorn',
+        '2026-04-02' => 'eindhoven',
+        '2026-04-03' => 'lelystad',
+        '2026-04-04' => 'denhaag',
+        '2026-04-05' => 'rotterdam',
+
+        '2026-04-08' => 'hilversum',
+        '2026-04-09' => 'deventer',
+        '2026-04-10' => 'culemborg',
+        '2026-04-11' => 'breda',
+        '2026-04-12' => 'rotterdam',
     ],
 ];
