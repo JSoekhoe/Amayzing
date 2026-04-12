@@ -49,12 +49,9 @@ return [
         'deventer' => [
             'center' => ['lat' => 52.2550, 'lng' => 6.1639],
         ],
-<<<<<<< HEAD
         'dordrecht' => [
             'center' => ['lat' => 51.8133, 'lng' => 4.6901],
         ],
-=======
->>>>>>> 5ad5688ae95981bfc2cb0c02bddf17e8e71a6c92
         'eindhoven' => [
             'center' => ['lat' => 51.4416, 'lng' => 5.4697],
         ],
@@ -110,11 +107,10 @@ return [
 
     // datum-gedreven bezorgplanning
     'date_schedule' => [
-<<<<<<< HEAD
         '2026-04-15' => 'haarlem',
         '2026-04-16' => 'dordrecht',
         '2026-04-17' => 'alphenaandenrijn',
-        '2026-04-18' => 'nijmegen',
+        '2026-04-18' => 'Nijmegen',
         '2026-04-19' => 'zaandam',
 
         '2026-04-22' => 'almere',
@@ -134,30 +130,5 @@ return [
 //        '2026-04-10' => 'culemborg',
 //        '2026-04-11' => 'breda',
 //        '2026-04-12' => 'rotterdam',
-=======
-        '2026-03-18' => 'denbosch',
-        '2026-03-19' => 'enschede',
-        '2026-03-20' => 'amersfoort',
-        '2026-03-21' => 'denhaag',
-        '2026-03-22' => 'rotterdam',
-
-        '2026-03-25' => 'groningen',
-        '2026-03-26' => 'utrecht',
-        '2026-03-27' => 'tilburg',
-        '2026-03-28' => 'arnhem',
-        '2026-03-29' => 'rotterdam',
-
-        '2026-04-01' => 'apeldoorn',
-        '2026-04-02' => 'eindhoven',
-        '2026-04-03' => 'lelystad',
-        '2026-04-04' => 'denhaag',
-        '2026-04-05' => 'rotterdam',
-
-        '2026-04-08' => 'hilversum',
-        '2026-04-09' => 'deventer',
-        '2026-04-10' => 'culemborg',
-        '2026-04-11' => 'breda',
-        '2026-04-12' => 'rotterdam',
->>>>>>> 5ad5688ae95981bfc2cb0c02bddf17e8e71a6c92
     ],
 ];
