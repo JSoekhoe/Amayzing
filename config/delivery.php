@@ -110,7 +110,7 @@ return [
         '2026-04-15' => 'haarlem',
         '2026-04-16' => 'dordrecht',
         '2026-04-17' => 'alphenaandenrijn',
-        '2026-04-18' => 'Nijmegen',
+        '2026-04-18' => 'nijmegen',
         '2026-04-19' => 'zaandam',
 
         '2026-04-22' => 'almere',
