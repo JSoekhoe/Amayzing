@@ -13,7 +13,7 @@ return [
         'almere' => [
             'center' => ['lat' => 52.37527, 'lng' => 5.21933],
         ],
-        'alphenaandenrijn' => [
+        'alphen aan den rijn' => [
             'center' => ['lat' => 52.1292, 'lng' => 4.6550],
         ],
         'amersfoort' => [
@@ -31,7 +31,7 @@ return [
         'arnhem' => [
             'center' => ['lat' => 51.9851, 'lng' => 5.8987],
         ],
-        'bergenopzoom' => [
+        'bergen op zoom' => [
             'center' => ['lat' => 51.4950, 'lng' => 4.2871],
         ],
         'breda' => [
@@ -40,10 +40,10 @@ return [
         'culemborg' => [
             'center' => ['lat' => 51.9555674, 'lng' => 5.2271806],
         ],
-        'denbosch' => [
+        'den bosch' => [
             'center' => ['lat' => 51.6978, 'lng' => 5.3037],
         ],
-        'denhaag' => [
+        'den haag' => [
             'center' => ['lat' => 52.0705, 'lng' => 4.3007],
         ],
         'deventer' => [
@@ -109,12 +109,12 @@ return [
     'date_schedule' => [
         '2026-04-15' => 'haarlem',
         '2026-04-16' => 'dordrecht',
-        '2026-04-17' => 'alphenaandenrijn',
+        '2026-04-17' => 'alphen aan den rijn',
         '2026-04-18' => 'nijmegen',
         '2026-04-19' => 'zaandam',
 
         '2026-04-22' => 'almere',
-        '2026-04-23' => 'bergenopzoom',
+        '2026-04-23' => 'bergen op zoom',
         '2026-04-24' => 'zoetermeer',
         '2026-04-25' => 'enschede',
         '2026-04-26' => 'nieuwegein',
