@@ -10,6 +10,9 @@ return [
         'alkmaar' => [
             'center' => ['lat' => 52.6324, 'lng' => 4.7534],
         ],
+        'almelo' => [
+            'center' => ['lat' => 52.3567, 'lng' => 6.6625],
+        ],
         'almere' => [
             'center' => ['lat' => 52.37527, 'lng' => 5.21933],
         ],
@@ -103,32 +106,35 @@ return [
         'zoetermeer' => [
             'center' => ['lat' => 52.0607, 'lng' => 4.4940],
         ],
+        'zwolle' => [
+            'center' => ['lat' => 52.5168, 'lng' => 6.0830],
+        ],
     ],
 
     // datum-gedreven bezorgplanning
     'date_schedule' => [
-        '2026-04-15' => 'haarlem',
-        '2026-04-16' => 'dordrecht',
-        '2026-04-17' => 'alphen aan den rijn',
-        '2026-04-18' => 'nijmegen',
-        '2026-04-19' => 'zaandam',
+        '2026-05-06' => 'amersfoort',
+        '2026-05-07' => 'tilburg',
+        '2026-05-08' => 'utrecht',
+        '2026-05-09' => 'deventer',
+        '2026-05-10' => 'apeldoorn',
 
-        '2026-04-22' => 'almere',
-        '2026-04-23' => 'bergen op zoom',
-        '2026-04-24' => 'zoetermeer',
-        '2026-04-25' => 'enschede',
-        '2026-04-26' => 'nieuwegein',
+        '2026-05-13' => 'groningen',
+        '2026-05-14' => 'hilversum',
+        '2026-05-15' => 'alkmaar',
+        '2026-05-16' => 'breda',
+        '2026-05-17' => 'almere',
 
-        '2026-04-29' => 'leeuwarden',
-        '2026-04-30' => 'amsterdam',
-        '2026-05-01' => 'rotterdam',
-        '2026-05-02' => 'lelystad',
-        '2026-05-03' => 'eindhoven',
+        '2026-05-20' => 'den bosch',
+        '2026-05-21' => 'haarlem',
+        '2026-05-22' => 'dordrecht',
+        '2026-05-23' => 'arnhem',
+        '2026-05-24' => 'antwerpen',
 
-//        '2026-04-08' => 'hilversum',
-//        '2026-04-09' => 'deventer',
-//        '2026-04-10' => 'culemborg',
-//        '2026-04-11' => 'breda',
-//        '2026-04-12' => 'rotterdam',
+        '2026-05-27' => 'almelo',
+        '2026-05-28' => 'leiden',
+        '2026-05-29' => 'zwolle',
+        '2026-05-30' => 'den haag',
+        '2026-05-31' => 'rotterdam',
     ],
 ];
