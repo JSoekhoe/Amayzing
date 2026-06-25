@@ -133,7 +133,7 @@ return [
 
     '2026-06-24' => 'eindhoven',
     '2026-06-25' => 'hilversum',
-    '2026-06-26' => 'maastricht',
+    //'2026-06-26' => 'maastricht',
     '2026-06-27' => 'arnhem',
     '2026-06-28' => 'haarlem',
 ],
