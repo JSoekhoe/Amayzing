@@ -112,29 +112,23 @@ return [
     ],
 
     // datum-gedreven bezorgplanning
-'date_schedule' => [
-    '2026-06-03' => 'apeldoorn',
-    '2026-06-04' => 'nijmegen',
-    '2026-06-05' => 'amersfoort',
-    '2026-06-06' => 'bergen op zoom',
-    '2026-06-07' => 'utrecht',
+    'date_schedule' => [
+        '2026-07-01' => 'amersfoort',
+        '2026-07-02' => 'tilburg',
+        '2026-07-03' => 'deventer',
+        '2026-07-04' => 'utrecht',
+        '2026-07-05' => 'almere',
 
-    '2026-06-10' => 'zoetermeer',
-    '2026-06-11' => 'breda',
-    '2026-06-12' => 'alphen aan den rijn',
-    '2026-06-13' => 'den haag',
-    '2026-06-14' => 'groningen',
+        '2026-07-08' => 'groningen',
+        '2026-07-09' => 'hilversum',
+        '2026-07-10' => 'alkmaar',
+        '2026-07-11' => 'breda',
+        '2026-07-12' => 'apeldoorn',
 
-    '2026-06-17' => 'tilburg',
-    '2026-06-18' => 'culemborg',
-    '2026-06-19' => 'enschede',
-    // '2026-06-20' => 'almere',
-    '2026-06-21' => 'rotterdam',
-
-    '2026-06-24' => 'eindhoven',
-    '2026-06-25' => 'hilversum',
-    //'2026-06-26' => 'maastricht',
-    '2026-06-27' => 'arnhem',
-    '2026-06-28' => 'haarlem',
-],
+        '2026-07-15' => 'den bosch',
+        '2026-07-16' => 'haarlem',
+        '2026-07-17' => 'dordrecht',
+        '2026-07-18' => 'arnhem',
+        '2026-07-19' => 'leiden',
+    ],
 ];
