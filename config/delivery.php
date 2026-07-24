@@ -113,22 +113,22 @@ return [
 
     // datum-gedreven bezorgplanning
     'date_schedule' => [
-        '2026-07-01' => 'amersfoort',
-        '2026-07-02' => 'tilburg',
-        '2026-07-03' => 'deventer',
-        '2026-07-04' => 'utrecht',
-        '2026-07-05' => 'almere',
+        '2026-07-29' => 'lelystad',
+        '2026-07-30' => 'arnhem',
+        '2026-07-31' => 'amersfoort',
+        '2026-08-01' => 'bergen op zoom',
+        '2026-08-02' => 'eindhoven',
 
-        '2026-07-08' => 'groningen',
-        '2026-07-09' => 'hilversum',
-        '2026-07-10' => 'alkmaar',
-        '2026-07-11' => 'breda',
-        '2026-07-12' => 'apeldoorn',
+        '2026-08-05' => 'zoetermeer',
+        '2026-08-06' => 'breda',
+        '2026-08-07' => 'hilversum',
+        '2026-08-08' => 'den haag',
+        '2026-08-09' => 'groningen',
 
-        '2026-07-15' => 'den bosch',
-        '2026-07-16' => 'haarlem',
-//        '2026-07-17' => 'dordrecht',
-        '2026-07-18' => 'arnhem',
-        '2026-07-19' => 'leiden',
+        '2026-08-12' => 'culemborg',
+        '2026-08-13' => 'amsterdam',
+        '2026-08-14' => 'enschede',
+        '2026-08-15' => 'utrecht',
+        '2026-08-16' => 'rotterdam',
     ],
 ];

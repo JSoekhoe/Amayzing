@@ -1,92 +1,223 @@
 <x-app-layout>
-    {{-- Hero Sectie --}}
-    <section class="relative bg-cover bg-center h-screen" style="background-image: url('/images/home.jpeg');">
-        <div class="absolute inset-0 bg-black opacity-20"></div>
-        <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-            <h1 class="text-5xl font-extrabold text-white mb-4">Luxe patisserie</h1>
-            <p class="text-xl text-white max-w-2xl mb-8">
-                Welkom op de website van aMayzing, een plek waar ik mijn passie voor luxe patisserie volledig tot leven breng.
-            </p>
-            <a href="#about" class="bg-white text-gray-800 px-6 py-3 font-semibold rounded shadow hover:bg-gray-100 transition">
-                Ontdek meer
-            </a>
-        </div>
-    </section>
+    {{-- ================= HERO ================= --}}
+    <section class="relative h-screen">
 
-    {{-- Over ons --}}
-    <section id="about" class="py-20 bg-white">
-        <div class="container mx-auto px-6 lg:px-24">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">aMayzing</h2>
-            <p class="text-lg text-gray-700 mb-6 leading-relaxed">
-                Mijn liefde voor bakken begon toen ik veertien jaar was en mijn eerste bijbaan in een bakkerij vond. Na tien jaar ervaring in luxe hotels in Amsterdam en een inspirerende tijd in Dubai, ben ik klaar om die passie met u te delen.
-            <p class="text-lg text-gray-700 leading-relaxed">
-                Bij aMayzing draait het om exclusieve, luxe creaties die uw verwachtingen overtreffen. Elke pastry maak ik met zorg, vakmanschap en oog voor detail. Hieronder vertel ik graag wat meer over de mogelijkheden.
-            </p>
-        </div>
-    </section>
+        <img src="{{ asset('images/home.jpeg') }}"
+             class="absolute inset-0 w-full h-full object-cover">
 
-    {{-- Diensten --}}
-    <section class="py-20 bg-gray-50">
-        <div class="container mx-auto px-6 lg:px-24">
-            <h2 class="text-3xl font-bold text-gray-800 mb-8">Creëer bijzondere momenten met luxe patisserie</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white rounded shadow p-6 text-center">
-                    <h3 class="text-xl font-semibold mb-2">Bouquet & Pastries</h3>
-                    <p class="text-gray-700">
-                        Heeft u een speciale gelegenheid? Een bruiloft, een jubileum, of gewoon een dag waarop u iemand (of uzelf!) wilt verrassen met iets bijzonders? Bij aMayzing kunt u terecht voor prachtige pastries, bouquets en petit fours die echt indruk maakt. Elk item is uniek, afgestemd op uw wensen en gemaakt met de fijnste ingrediënten.
-                    </p>
-                </div>
-                <div class="bg-white rounded shadow p-6 text-center">
-                    <h3 class="text-xl font-semibold mb-2">Leermeesterschap</h3>
-                    <p class="text-gray-700">
-                        Wilt u zelf aan de slag in de wereld van luxe patisserie? Ik ben leermeester en sta voor iedereen klaar die meer wil leren over dit prachtige vak. Of u nu beginner bent of al ervaring heeft, ik begeleid u stap voor stap, zodat u zelf met vertrouwen de heerlijkste creaties kunt maken.
-                    </p>
-                </div>
-                <div class="bg-white rounded shadow p-6 text-center">
-                    <h3 class="text-xl font-semibold mb-2">Evenementenservice & Foodbox</h3>
-                    <p class="text-gray-700">
-                        aMayzing Pastry biedt evenementenservice en maakt van elk evenement een smakelijke ervaring met unieke, op maat gemaakte patisserie. Wij nodigen u ook uit om de unieke ervaring van onze Foodbox te ontdekken. Twee automaten vol met verrukkelijke gerechten en verfrissende drankjes wachten op u!
-                    </p>
-                </div>
+        <div class="absolute inset-0 bg-black/35"></div>
+
+        <div class="relative z-10 flex items-center justify-center h-full">
+
+            <div class="text-center text-white">
+
+                <h1 class="text-6xl font-light tracking-[8px] uppercase">
+                    Jamay Tuller Patisserie
+                </h1>
+
+                <p class="mt-10 text-l max-w-2xl mx-auto leading-8">
+                    Een plek waar ik mijn passie voor luxe patisserie
+                    volledig tot leven breng.
+                </p>
+
             </div>
+
         </div>
+
     </section>
 
-    {{-- Beleving --}}
-    <section class="py-20 bg-white">
-        <div class="container mx-auto px-6 lg:px-24 text-center">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">Passie en vakmanschap in elke hap</h2>
-            <p class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
-                Voor mij is patisserie niet zomaar een product – het is een ervaring die alle zintuigen prikkelt. Mijn ervaring heeft mij geïnspireerd om technieken en smaken te combineren die nét even anders zijn. Elk gebakje dat ik maak, is met liefde en aandacht bereid, zodat het niet alleen mooi is om te zien, maar ook een smaaksensatie biedt. Ik wil dat u bij elke hap verrast wordt door de luxe en passie die erin verwerkt zit.
-            </p>
+    {{-- ================= VAN DROOM ================= --}}
+    <section class="bg-white py-28">
+
+        <div class="max-w-7xl mx-auto px-8">
+
+            <div class="max-w-4xl mx-auto text-center">
+
+                <h2 class="text-5xl font-light uppercase tracking-[5px] mb-10">
+                    Van droom naar werkelijkheid
+                </h2>
+
+                <p class="text-gray-700 leading-9 text-lg mb-8">
+
+                    Mijn liefde voor bakken begon toen ik veertien jaar
+                    was en mijn eerste bijbaan in een bakkerij vond.
+                    Na tien jaar ervaring in luxe hotels in Amsterdam
+                    en een inspirerende tijd in Dubai, ben ik klaar
+                    om die passie met jullie te delen.
+
+                </p>
+
+                <p class="text-gray-700 leading-9 text-lg mb-16">
+
+                    Bij Jamay Tuller Patisserie draait het om
+                    exclusieve, luxe creaties die je verwachtingen
+                    overtreffen. Elke pastry maak ik met zorg,
+                    vakmanschap en oog voor detail.
+
+                </p>
+
+            </div>
+
+
+            {{-- Foto's --}}
+            <div class="grid md:grid-cols-3 gap-8">
+
+                <img src="{{ asset('images/about-1.jpg') }}"
+                     class="rounded-lg shadow-xl w-full h-96 object-cover"
+                     alt="Jamay Tuller Patisserie">
+
+                <img src="{{ asset('images/about-2.jpg') }}"
+                     class="rounded-lg shadow-xl w-full h-96 object-cover"
+                     alt="Luxe patisserie">
+
+                <img src="{{ asset('images/about-3.jpg') }}"
+                     class="rounded-lg shadow-xl w-full h-96 object-cover"
+                     alt="Patisserie creaties">
+
+            </div>
+
         </div>
+
+    </section>
+    {{-- ================= PATISSERIE VOOR IEDER MOMENT ================= --}}
+    <section class="py-28 bg-[#faf8f5]">
+
+        <div class="max-w-7xl mx-auto px-8">
+
+            <div class="text-center mb-20">
+                <h2 class="text-5xl font-light uppercase tracking-[5px] mb-5">
+                    Patisserie voor ieder moment
+                </h2>
+
+                <div class="w-32 h-px bg-gray-300 mx-auto"></div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-12 text-center">
+
+                {{-- Bezorging --}}
+                <div class="bg-[#fdfd96] rounded-xl shadow-lg p-10">
+                    <h3 class="uppercase tracking-[3px] text-2xl mb-6">
+                        Bezorging
+                    </h3>
+
+                    <p class="text-gray-600 leading-8">
+                        Waar je ook woont, wij bezorgen onze verse desserts graag
+                        bij jou thuis. Onze bezorgplanning wisselt wekelijks per
+                        regio. Volg ons op social media om te zien wanneer wij bij
+                        jou in de buurt bezorgen.
+                    </p>
+
+                    <div class="my-8"></div>
+
+                    <h4 class="uppercase tracking-[2px] font-medium mb-4">
+                        Eenvoudig bestellen
+                    </h4>
+
+                    <p class="text-gray-600 leading-8">
+                        Alle bestellingen voor bezorging plaats je gemakkelijk via
+                        deze website. Geef je adres op, kies je producten en wij
+                        zorgen dat je bestelling vers bij je aankomt.
+                    </p>
+                </div>
+
+                {{-- Afhalen --}}
+                <div class="bg-[#fdfd96] rounded-xl shadow-lg p-10">
+                    <h3 class="uppercase tracking-[3px] text-2xl mb-6">
+                        Afhalen
+                    </h3>
+
+                    <h4 class="uppercase tracking-[2px] font-medium mb-4">
+                        Afhalen in onze bakkerij
+                    </h4>
+
+                    <p class="text-gray-600 leading-8 mb-8">
+                        Liever zelf ophalen? In Wormerveer kun je jouw bestelling
+                        afhalen bij Industieweg 19, van woensdag tot en met zondag tussen
+                        10:00 en 14:30 uur.
+                    </p>
+
+                    <div class="my-8"></div>
+
+                    <h4 class="uppercase tracking-[2px] font-medium mb-4">
+                        Afhalen in bezorgsteden
+                    </h4>
+
+                    <p class="text-gray-600 leading-8">
+                        Wil je afhalen in één van onze berzorgsteden? Ook dat
+                        is mogelijk! Let op: alleen op de dag van de bezorging zelf,
+                        tussen 10:00 en 14:00.
+                    </p>
+
+                    <p class="text-gray-600 leading-8">
+                        App ons op +31 6 44042554 en wij laten je weten waar je
+                        jouw bestelling kunt ophalen.
+                    </p>
+                </div>
+
+                {{-- Evenementen --}}
+                <div class="bg-[#fdfd96] rounded-xl shadow-lg p-10">
+                    <h3 class="uppercase tracking-[3px] text-2xl mb-6">
+                        Evenementen
+                    </h3>
+
+                    <p class="text-gray-600 leading-8 mb-8">
+                        Verjaardag, bruiloft, babyshower of een ander bijzonder
+                        moment? Wij maken het extra feestelijk met heerlijke,
+                        verse patisserie.
+                    </p>
+
+                    <div class="my-8"></div>
+
+                    <p class="text-gray-600 leading-8">
+                        Bekijk ons assortiment of vraag een creatie op maat aan.
+                        Van kleur en smaak tot thema: alles wordt volledig naar
+                        jouw wensen gemaakt.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+    {{-- ================= CONTACT ================= --}}
+    <section class="py-28 bg-white">
+
+        <div class="max-w-4xl mx-auto px-8 text-center">
+
+            <h2 class="text-5xl font-light uppercase tracking-[5px] mb-10">
+                Contact
+            </h2>
+
+            <p class="text-gray-600 text-lg leading-9 mb-10">
+                Heb je vragen over onze producten, de bezorging of
+                afhaalmogelijkheden? Of wil je direct een bestelling
+                plaatsen voor een verjaardag, bruiloft of een ander
+                bijzonder moment? Neem dan gerust contact met ons op.
+            </p>
+
+            <div class="space-y-4 text-lg">
+
+                <p>
+                    <span class="font-semibold">Telefoon</span><br>
+                    <a href="tel:+31644042554"
+                       class="hover:underline">
+                        +31 6 44042554
+                    </a>
+                </p>
+
+                <p>
+                    <span class="font-semibold">E-mail</span><br>
+                    <a href="mailto:amayzingpastry@gmail.com"
+                       class="hover:underline">
+                        amayzingpastry@gmail.com
+                    </a>
+                </p>
+
+            </div>
+
+        </div>
+
     </section>
 
-    {{-- Contact --}}
-    <section class="py-20 bg-gray-50">
-        <div class="container mx-auto px-6 lg:px-24 text-center">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Laat u verleiden door aMayzing</h2>
-            <p class="text-lg text-gray-700 mb-6">
-                Of u nu op zoek bent naar een prachtig dessert voor een speciale gelegenheid, een uniek bouquet, of bij een stage wilt volgen – ik help graag. Bij aMayzing bent u verzekerd van luxe en kwaliteit, en ik hoop dat u net zo veel geniet van mijn creaties als ik van het maken ervan.
-            </p>
-            <p class="text-lg text-gray-700 mb-8">
-                Heeft u nog vragen of wilt u een bestelling plaatsen? Neem dan contact met mij op door te bellen naar
-                <a href="tel:+31858882901" class="text-gray-800 font-semibold hover:underline">085-8882901</a> of te mailen naar
-                <a href="mailto:jamaytuller@gmail.com" class="text-gray-800 font-semibold hover:underline">amayzingpastry@gmail.com</a>.
-            </p>
-        </div>
-    </section>
-
-    {{-- Footer met info --}}
-    <footer class="bg-gray-100 py-8">
-        <div class="container mx-auto px-6 lg:px-24 text-center">
-            <p class="text-gray-700 text-lg mb-2">
-                aMayzing Pastry - KvK 95042032
-            </p>
-            <p class="text-gray-700">
-                Contact:
-                <a href="tel:+31858882901" class="font-semibold text-gray-800 hover:underline">085-8882901</a> &middot;
-               </p>
-        </div>
-    </footer>
 </x-app-layout>
