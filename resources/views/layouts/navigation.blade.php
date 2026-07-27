@@ -172,11 +172,11 @@
                 Winkelwagen
             </x-responsive-nav-link>
 
-            @guest
-                <a href="{{ route('login') }}">
-                    Inloggen
-                </a>
-            @endguest
+{{--            @guest--}}
+{{--                <a href="{{ route('login') }}">--}}
+{{--                    Inloggen--}}
+{{--                </a>--}}
+{{--            @endguest--}}
 
         </div>
 

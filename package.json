@@ -20,5 +20,9 @@
     },
     "dependencies": {
         "browser-image-compression": "^2.0.2"
+    },
+    "allowScripts": {
+        "@tailwindcss/oxide@4.1.10": true,
+        "esbuild@0.25.5": true
     }
 }
