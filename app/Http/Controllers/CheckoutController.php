@@ -251,9 +251,13 @@ class CheckoutController extends Controller
         }
 
         $validator->after(function ($validator) use ($cart, $products, $request, $pickupLocations, $total) {
-            $minimumOrderAmount = 40;
-            if ($request->type === 'bezorgen' && $total < $minimumOrderAmount) {
-                $validator->errors()->add('minimum_order', "Het minimale bestelbedrag is €{$minimumOrderAmount}.");
+            $minimumOrderAmount = $request->type === 'bezorgen' ? 40 : 15.50;
+
+            if ($total < $minimumOrderAmount) {
+                $validator->errors()->add(
+                    'minimum_order',
+                    "Het minimale bestelbedrag is €" . number_format($minimumOrderAmount, 2, ',', '.')
+                );
             }
 
             if ($request->type === 'afhalen') {
