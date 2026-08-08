@@ -77,5 +77,7 @@
         document.body.style.opacity = '1';
     });
 </script>
+@stack('scripts')
+</body>
 </body>
 </html>

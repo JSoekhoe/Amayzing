@@ -57,8 +57,13 @@
                             id="faq-answer-{{ $faq->id }}"
                             class="hidden px-6 pb-6"
                         >
-                            <div class="pt-1 text-gray-600 leading-relaxed">
-                                {!! nl2br(e($faq->answer)) !!}
+                            <div class="faq-answer text-gray-700 leading-7
+                            [&_a]:text-gray-900
+                            [&_a]:underline
+                            [&_a]:font-semibold
+                            [&_a]:hover:text-gray-600
+                            [&_a]:transition">
+                                {!! $faq->answer !!}
                             </div>
                         </div>
 

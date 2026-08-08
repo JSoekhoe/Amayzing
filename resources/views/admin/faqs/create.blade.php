@@ -35,24 +35,53 @@
 
             {{-- Antwoord --}}
             <div>
-                <label for="answer"
-                       class="block text-sm font-semibold text-gray-700 mb-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
                     Antwoord
                 </label>
+
+                <div id="answer-editor" class="bg-white"></div>
 
                 <textarea
                     name="answer"
                     id="answer"
-                    rows="8"
+                    class="hidden"
                     required
-                    placeholder="Schrijf hier het antwoord op de vraag..."
-                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-gray-600 focus:ring-gray-600"
                 >{{ old('answer') }}</textarea>
 
-                @error('answer')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+                <p class="mt-2 text-sm text-gray-500">
+                    Gebruik de werkbalk om tekst op te maken of links toe te voegen.
+                </p>
             </div>
+
+            @push('scripts')
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const editor = new Quill('#answer-editor', {
+                            theme: 'snow',
+                            modules: {
+                                toolbar: [
+                                    ['bold', 'italic', 'underline'],
+                                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                    ['link'],
+                                    ['clean']
+                                ]
+                            }
+                        });
+
+                        const textarea = document.getElementById('answer');
+
+                        editor.root.innerHTML = textarea.value;
+
+                        editor.on('text-change', function () {
+                            textarea.value = editor.root.innerHTML;
+                        });
+
+                        document.querySelector('form').addEventListener('submit', function () {
+                            textarea.value = editor.root.innerHTML;
+                        });
+                    });
+                </script>
+            @endpush
 
             {{-- Volgorde --}}
             <div>
