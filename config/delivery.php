@@ -122,7 +122,7 @@ return [
         '2026-08-05' => 'zoetermeer',
         '2026-08-06' => 'breda',
         '2026-08-07' => 'hilversum',
-     //   '2026-08-08' => 'den haag',
+        '2026-08-08' => 'den haag',
         '2026-08-09' => 'groningen',
 
         '2026-08-12' => 'culemborg',

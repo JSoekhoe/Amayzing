@@ -334,44 +334,27 @@ class CheckoutController extends Controller
             }
         });
 
-        // Max per dag check (alleen betaalde orders)
-        $productCountMultipliers = [
-            20 => 9,
-        ];
+        // Maximaal aantal bestellingen per dag voor bezorgen
+        //Afhalen blijft altijd mogelijk op locatie.
+        if ($request->type === 'bezorgen' && $request->delivery_date) {
 
-        $orderDate = $request->type === 'afhalen' ? $request->pickup_date : ($request->type === 'bezorgen' ? $request->delivery_date : null);
+            $maxOrdersPerDay = 15;
 
-        if ($orderDate) {
-            $dateColumn = $request->type === 'afhalen' ? 'pickup_date' : 'delivery_date';
-
-            $ordersOfTheDay = Order::where('type', $request->type)
+            $ordersOfTheDay = Order::where('type', 'bezorgen')
                 ->whereNotNull('paid_at')
-                ->whereDate($dateColumn, '=', $orderDate)
-                ->pluck('id');
+                ->whereDate('delivery_date', '=', $request->delivery_date)
+                ->count();
 
-            $orderItems = OrderItem::whereIn('order_id', $ordersOfTheDay)->get();
-
-            $totalProductsSold = 0;
-            foreach ($orderItems as $item) {
-                $multiplier = $productCountMultipliers[$item->product_id] ?? 1;
-                $totalProductsSold += $item->quantity * $multiplier;
-            }
-
-            $newOrderProductCount = 0;
-            foreach ($cart as $productId => $types) {
-                $multiplier = $productCountMultipliers[$productId] ?? 1;
-                foreach ($types as $type => $data) {
-                    if ($type === $request->type) {
-                        $newOrderProductCount += $data['quantity'] * $multiplier;
-                    }
-                }
-            }
-
-            $maxPerDay = 150;
-            if (($totalProductsSold + $newOrderProductCount) > $maxPerDay) {
-                return redirect()->back()->withInput()->withErrors([
-                    'max_products_per_day' => "Er kunnen maximaal {$maxPerDay} producten per dag verkocht worden. Er zijn er al {$totalProductsSold} besteld voor deze dag."
-                ]);
+            if ($ordersOfTheDay >= $maxOrdersPerDay) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors([
+                        'delivery_date' =>
+                            "Voor deze dag hebben wij helaas de maximale bezorgcapaciteit bereikt.
+                            Afhalen is op deze dag nog wel mogelijk.
+                            Heeft u vragen of wilt u de mogelijkheden bespreken?
+                            Neem dan gerust contact met ons op via WhatsApp: +31 6 44042554."
+                    ]);
             }
         }
 

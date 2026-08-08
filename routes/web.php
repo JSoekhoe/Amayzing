@@ -11,7 +11,9 @@ use App\Http\Controllers\{
     PaymentController,
     ThankYouController,
     Admin\OrderAdminController,
-    Admin\ProductAdminController
+    Admin\ProductAdminController,
+    Admin\FaqAdminController,
+    FaqController,
 };
 use Illuminate\Support\Facades\Config;
 
@@ -63,6 +65,10 @@ Route::get('/levering', function () {
 
     return view('delivery_schedule', compact('schedule', 'cities'));
 });
+
+// FAQ
+Route::get('/faq', [FaqController::class, 'index'])->name('faq');
+
 // Admin routes (alleen voor beheerders)
 Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')
     ->group(function () {
@@ -76,6 +82,9 @@ Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')
 
         // Producten admin
         Route::resource('products', ProductAdminController::class);
+
+        // FAQ admin
+        Route::resource('faqs', FaqAdminController::class)->except(['show']);
     });
 
 // Authenticatie (login/register routes)

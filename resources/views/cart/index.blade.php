@@ -139,6 +139,8 @@
             </div>
         @endif
     </div>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+    </div>
 
     <script>
         function changeQty(inputId, max, formId, delta) {

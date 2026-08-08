@@ -60,7 +60,7 @@
 </main>
 
 {{-- Footer (optioneel) --}}
-{{-- @include('layouts.footer') --}}
+ @include('layouts.footer')
 <script>
     // Scrollpositie opslaan
     window.addEventListener('beforeunload', function () {

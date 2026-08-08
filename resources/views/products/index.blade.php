@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-serif text-2xl font-semibold text-gray-900 leading-tight">
-            Producten
+            Producten & Bestellen
         </h2>
     </x-slot>
 
@@ -133,13 +133,24 @@
 
                     </div>
 
-                    <p class="mt-4 text-sm text-gray-600">
-                        We bezorgen binnen een straal van <strong class="text-gray-900 font-semibold">{{ $radiusKm }} km</strong> vanaf het centrum van elke stad.
-                        Bestellen kan tot <strong class="text-gray-900 font-semibold">{{ $orderCutoff }}</strong> de avond voor de bezorging.
-                        Bezorging vindt plaats <strong class="text-gray-900 font-semibold">{{ $deliveryStartWeekday }}</strong> op weekdagen, en <strong class="text-gray-900 font-semibold">{{ $deliveryStartWeekend }}</strong> in het weekend.
-                        Bezorging loopt tot uiterlijk <strong class="text-gray-900 font-semibold">{{ $deliveryEnd }}</strong>.
-                        Val je buiten de bezorgstraal of ben je te laat met bestellen? Bel dan naar <strong class="text-gray-900 font-semibold">0644042554</strong>.
-                    </p>
+                    <div class="mt-6 bg-white border border-gray-300 rounded-2xl p-5">
+                        <h4 class="font-serif text-lg font-semibold text-gray-900 mb-2">
+                            Meer informatie over bezorgen
+                        </h4>
+
+                        <p class="text-sm text-gray-600 leading-6">
+                            Wil je meer weten over onze bezorging, bezorggebieden, besteltijden,
+                            bezorgkosten of wat je kunt doen wanneer je buiten ons bezorggebied valt?
+                            Bekijk dan onze veelgestelde vragen.
+                        </p>
+
+                        <a
+                            href="{{ route('faq') }}"
+                            class="inline-block mt-4 font-semibold text-gray-900 hover:underline"
+                        >
+                            Veelgestelde vragen →
+                        </a>
+                    </div>
                 </aside>
 
                 {{-- Rechter kader: Postcode check formulier --}}

@@ -28,6 +28,11 @@
                           class="block bg-gray-900 text-white text-lg px-6 py-4 rounded-xl hover:bg-gray-800 transition shadow text-center font-medium">
                         🕒 Bestellingen van vandaag
                     </a>
+
+                    <a href="{{ route('admin.faqs.index') }}"
+                       class="block bg-gray-900 text-white text-lg px-6 py-4 rounded-xl hover:bg-gray-800 transition shadow text-center font-medium">
+                        ❓ FAQ beheren
+                    </a>
                 </div>
             </div>
         </div>

@@ -199,54 +199,5 @@
         </div>
 
     </section>
-    {{-- ================= CONTACT ================= --}}
-    <section class="py-16 md:py-28 bg-white">
-
-        <div class="max-w-4xl mx-auto px-5 md:px-8 text-center">
-
-            <h2 class="text-3xl md:text-5xl font-light uppercase tracking-[3px] md:tracking-[5px] mb-8 md:mb-10">
-                Contact
-            </h2>
-
-            <p class="text-gray-600 text-base md:text-lg leading-8 md:leading-9 mb-10 max-w-3xl mx-auto">
-                Heb je vragen over onze producten, de bezorging of
-                afhaalmogelijkheden? Of wil je direct een bestelling plaatsen
-                voor een verjaardag, bruiloft of een ander bijzonder moment?
-                Neem dan gerust contact met ons op.
-            </p>
-
-            <div class="space-y-8">
-
-                <div>
-                    <h3 class="uppercase tracking-[2px] font-semibold text-lg mb-2">
-                        Telefoon
-                    </h3>
-
-                    <a
-                        href="tel:+31644042554"
-                        class="text-gray-700 hover:text-black hover:underline transition"
-                    >
-                        +31 6 44042554
-                    </a>
-                </div>
-
-                <div>
-                    <h3 class="uppercase tracking-[2px] font-semibold text-lg mb-2">
-                        E-mail
-                    </h3>
-
-                    <a
-                        href="mailto:amayzingpastry@gmail.com"
-                        class="text-gray-700 hover:text-black hover:underline transition"
-                    >
-                        amayzingpastry@gmail.com
-                    </a>
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
 
 </x-app-layout>
