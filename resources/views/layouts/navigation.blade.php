@@ -19,10 +19,10 @@
             {{-- Desktop navigatie --}}
             <div class="hidden md:flex items-center gap-12 text-sm uppercase tracking-[3px] text-gray-700">
 
-                <x-nav-link :href="route('home')"
-                            :active="request()->routeIs('home')">
-                    Home
-                </x-nav-link>
+{{--                <x-nav-link :href="route('home')"--}}
+{{--                            :active="request()->routeIs('home')">--}}
+{{--                    Home--}}
+{{--                </x-nav-link>--}}
 
                 <x-nav-link :href="route('products.index')"
                             :active="request()->routeIs('products.index')">
@@ -160,9 +160,9 @@
 
         <div class="px-8 py-6 space-y-4 uppercase tracking-[2px] text-sm">
 
-            <x-responsive-nav-link :href="route('home')">
-                Home
-            </x-responsive-nav-link>
+{{--            <x-responsive-nav-link :href="route('home')">--}}
+{{--                Home--}}
+{{--            </x-responsive-nav-link>--}}
 
             <x-responsive-nav-link :href="route('products.index')">
                 Producten & Bestellen
