@@ -10,102 +10,151 @@ return [
         'alkmaar' => [
             'center' => ['lat' => 52.6324, 'lng' => 4.7534],
         ],
+
         'almelo' => [
             'center' => ['lat' => 52.3567, 'lng' => 6.6625],
         ],
+
         'almere' => [
             'center' => ['lat' => 52.37527, 'lng' => 5.21933],
         ],
+
         'alphen aan den rijn' => [
             'center' => ['lat' => 52.1292, 'lng' => 4.6550],
         ],
+
         'amersfoort' => [
             'center' => ['lat' => 52.1561113, 'lng' => 5.3878266],
         ],
+
+        'amstelveen' => [
+            'center' => ['lat' => 52.3016, 'lng' => 4.8598],
+        ],
+
         'amsterdam' => [
             'center' => ['lat' => 52.3676, 'lng' => 4.9041],
         ],
+
         'antwerpen' => [
             'center' => ['lat' => 51.2194, 'lng' => 4.4025],
         ],
+
         'apeldoorn' => [
             'center' => ['lat' => 52.2112, 'lng' => 5.9699],
         ],
+
         'arnhem' => [
             'center' => ['lat' => 51.9851, 'lng' => 5.8987],
         ],
+
         'bergen op zoom' => [
             'center' => ['lat' => 51.4950, 'lng' => 4.2871],
         ],
+
         'breda' => [
             'center' => ['lat' => 51.5719, 'lng' => 4.7682],
         ],
+
         'culemborg' => [
             'center' => ['lat' => 51.9555674, 'lng' => 5.2271806],
         ],
+
         'den bosch' => [
             'center' => ['lat' => 51.6978, 'lng' => 5.3037],
         ],
+
         'den haag' => [
             'center' => ['lat' => 52.0705, 'lng' => 4.3007],
         ],
+
         'deventer' => [
             'center' => ['lat' => 52.2550, 'lng' => 6.1639],
         ],
+
         'dordrecht' => [
             'center' => ['lat' => 51.8133, 'lng' => 4.6901],
         ],
+
         'eindhoven' => [
             'center' => ['lat' => 51.4416, 'lng' => 5.4697],
         ],
+
         'enschede' => [
             'center' => ['lat' => 52.2215, 'lng' => 6.8937],
         ],
+
+        'gouda' => [
+            'center' => ['lat' => 52.0115, 'lng' => 4.7105],
+        ],
+
         'groningen' => [
             'center' => ['lat' => 53.2194, 'lng' => 6.5665],
         ],
+
         'haarlem' => [
             'center' => ['lat' => 52.3874, 'lng' => 4.6462],
         ],
+
         'hilversum' => [
             'center' => ['lat' => 52.22333, 'lng' => 5.17639],
         ],
+
+        'hoorn' => [
+            'center' => ['lat' => 52.6420, 'lng' => 5.0597],
+        ],
+
         'leeuwarden' => [
             'center' => ['lat' => 53.2012, 'lng' => 5.7999],
         ],
+
         'leiden' => [
             'center' => ['lat' => 52.160114, 'lng' => 4.497010],
         ],
+
         'lelystad' => [
             'center' => ['lat' => 52.5185, 'lng' => 5.4714],
         ],
+
         'maastricht' => [
             'center' => ['lat' => 50.8514, 'lng' => 5.6900],
         ],
+
         'nieuwegein' => [
             'center' => ['lat' => 52.0286, 'lng' => 5.0900],
         ],
+
         'nijmegen' => [
             'center' => ['lat' => 51.8425, 'lng' => 5.8528],
         ],
+
+        'roermond' => [
+            'center' => ['lat' => 51.1942, 'lng' => 5.9873],
+        ],
+
         'rotterdam' => [
             'center' => ['lat' => 51.9244, 'lng' => 4.4777],
         ],
+
         'tilburg' => [
             'center' => ['lat' => 51.5606, 'lng' => 5.0919],
         ],
+
         'utrecht' => [
             'center' => ['lat' => 52.0907, 'lng' => 5.1214],
         ],
+
         'venlo' => [
             'center' => ['lat' => 51.3704, 'lng' => 6.1724],
         ],
+
         'zaandam' => [
             'center' => ['lat' => 52.4385, 'lng' => 4.8260],
         ],
+
         'zoetermeer' => [
             'center' => ['lat' => 52.0607, 'lng' => 4.4940],
         ],
+
         'zwolle' => [
             'center' => ['lat' => 52.5168, 'lng' => 6.0830],
         ],
@@ -113,22 +162,25 @@ return [
 
     // datum-gedreven bezorgplanning
     'date_schedule' => [
-        '2026-07-29' => 'lelystad',
-        '2026-07-30' => 'arnhem',
-        '2026-07-31' => 'amersfoort',
-        '2026-08-01' => 'bergen op zoom',
-        '2026-08-02' => 'eindhoven',
+        // 19 - 23 augustus 2026
+        '2026-08-19' => 'alkmaar',
+        '2026-08-20' => 'haarlem',
+        '2026-08-21' => 'zwolle',
+        '2026-08-22' => 'tilburg',
+        '2026-08-23' => 'lelystad',
 
-        '2026-08-05' => 'zoetermeer',
-        '2026-08-06' => 'breda',
-        '2026-08-07' => 'hilversum',
-        '2026-08-08' => 'den haag',
-        '2026-08-09' => 'groningen',
+        // 26 - 30 augustus 2026
+        '2026-08-26' => 'eindhoven',
+        '2026-08-27' => 'amstelveen',
+        '2026-08-28' => 'almere',
+        '2026-08-29' => 'den haag',
+        '2026-08-30' => 'roermond',
 
-        '2026-08-12' => 'culemborg',
-        '2026-08-13' => 'amsterdam',
-        '2026-08-14' => 'enschede',
-        '2026-08-15' => 'utrecht',
-        '2026-08-16' => 'rotterdam',
+        // 2 - 6 september 2026
+        '2026-09-02' => 'hoorn',
+        '2026-09-03' => 'nijmegen',
+        '2026-09-04' => 'gouda',
+        '2026-09-05' => 'den bosch',
+        '2026-09-06' => 'rotterdam',
     ],
 ];
