@@ -162,6 +162,13 @@ return [
 
     // datum-gedreven bezorgplanning
     'date_schedule' => [
+        // 12 - 16 augustus 2026
+        '2026-08-12' => 'culemborg',
+        '2026-08-13' => 'amsterdam',
+        '2026-08-14' => 'enschede',
+        '2026-08-15' => 'utrecht',
+        '2026-08-16' => 'rotterdam',
+
         // 19 - 23 augustus 2026
         '2026-08-19' => 'alkmaar',
         '2026-08-20' => 'haarlem',
