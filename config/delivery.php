@@ -99,6 +99,10 @@ return [
             'center' => ['lat' => 52.22333, 'lng' => 5.17639],
         ],
 
+        'hoofddorp' => [
+            'center' => ['lat' => 52.3026, 'lng' => 4.6881],
+        ],
+
         'hoorn' => [
             'center' => ['lat' => 52.6420, 'lng' => 5.0597],
         ],
@@ -162,6 +166,7 @@ return [
 
     // datum-gedreven bezorgplanning
     'date_schedule' => [
+
         // 12 - 16 augustus 2026
         '2026-08-12' => 'culemborg',
         '2026-08-13' => 'amsterdam',
@@ -189,5 +194,33 @@ return [
         '2026-09-04' => 'gouda',
         '2026-09-05' => 'den bosch',
         '2026-09-06' => 'rotterdam',
+
+        // Week 1: 9 - 13 september 2026
+        '2026-09-09' => 'utrecht',
+        '2026-09-10' => 'breda',
+        '2026-09-11' => 'apeldoorn',
+        '2026-09-12' => 'groningen',
+        '2026-09-13' => 'dordrecht',
+
+        // Week 2: 16 - 20 september 2026
+        '2026-09-16' => 'leiden',
+        '2026-09-17' => 'arnhem',
+        '2026-09-18' => 'culemborg',
+        '2026-09-19' => 'almere',
+        '2026-09-20' => 'antwerpen',
+
+        // Week 3: 23 - 27 september 2026
+        '2026-09-23' => 'hilversum',
+        '2026-09-24' => 'venlo',
+        '2026-09-25' => 'lelystad',
+        '2026-09-26' => 'bergen op zoom',
+        '2026-09-27' => 'amersfoort',
+
+        // Week 4: 30 september - 4 oktober 2026
+        '2026-09-30' => 'alphen aan den rijn',
+        '2026-10-01' => 'enschede',
+        '2026-10-02' => 'amstelveen',
+        '2026-10-03' => 'tilburg',
+        '2026-10-04' => 'hoofddorp',
     ],
 ];
