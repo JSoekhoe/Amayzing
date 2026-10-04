@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        
+
 
         // Admin-gebruiker
         User::firstOrCreate(

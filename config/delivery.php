@@ -71,6 +71,10 @@ return [
             'center' => ['lat' => 52.2550, 'lng' => 6.1639],
         ],
 
+        'diemen' => [
+            'center' => ['lat' => 52.3396, 'lng' => 4.9628],
+        ],
+
         'dordrecht' => [
             'center' => ['lat' => 51.8133, 'lng' => 4.6901],
         ],
@@ -123,6 +127,10 @@ return [
             'center' => ['lat' => 50.8514, 'lng' => 5.6900],
         ],
 
+        'middelburg' => [
+            'center' => ['lat' => 51.4988, 'lng' => 3.6109],
+        ],
+
         'nieuwegein' => [
             'center' => ['lat' => 52.0286, 'lng' => 5.0900],
         ],
@@ -151,6 +159,10 @@ return [
             'center' => ['lat' => 51.3704, 'lng' => 6.1724],
         ],
 
+        'woerden' => [
+            'center' => ['lat' => 52.0850, 'lng' => 4.8830],
+        ],
+
         'zaandam' => [
             'center' => ['lat' => 52.4385, 'lng' => 4.8260],
         ],
@@ -164,63 +176,28 @@ return [
         ],
     ],
 
-    // datum-gedreven bezorgplanning
+    /// datum-gedreven bezorgplanning
     'date_schedule' => [
 
-        // 12 - 16 augustus 2026
-        '2026-08-12' => 'culemborg',
-        '2026-08-13' => 'amsterdam',
-        '2026-08-14' => 'enschede',
-        '2026-08-15' => 'utrecht',
-        '2026-08-16' => 'rotterdam',
+        // 7 - 11 oktober 2026
+        '2026-10-07' => 'almere',
+        '2026-10-08' => 'eindhoven',
+        '2026-10-09' => 'utrecht',
+        '2026-10-10' => 'haarlem',
+        '2026-10-11' => 'rotterdam',
 
-        // 19 - 23 augustus 2026
-        '2026-08-19' => 'alkmaar',
-        '2026-08-20' => 'haarlem',
-        '2026-08-21' => 'zwolle',
-        '2026-08-22' => 'tilburg',
-        '2026-08-23' => 'lelystad',
+        // 14 - 18 oktober 2026
+        '2026-10-14' => 'diemen',
+        '2026-10-15' => 'middelburg',
+        '2026-10-16' => 'den bosch',
+        '2026-10-17' => 'den haag',
+        '2026-10-18' => 'gouda',
 
-        // 26 - 30 augustus 2026
-        '2026-08-26' => 'eindhoven',
-        '2026-08-27' => 'amstelveen',
-        '2026-08-28' => 'almere',
-        '2026-08-29' => 'den haag',
-        '2026-08-30' => 'roermond',
-
-        // 2 - 6 september 2026
-        '2026-09-02' => 'hoorn',
-        '2026-09-03' => 'nijmegen',
-        '2026-09-04' => 'gouda',
-        '2026-09-05' => 'den bosch',
-        '2026-09-06' => 'rotterdam',
-
-        // Week 1: 9 - 13 september 2026
-        '2026-09-09' => 'utrecht',
-        '2026-09-10' => 'breda',
-        '2026-09-11' => 'apeldoorn',
-        '2026-09-12' => 'groningen',
-        '2026-09-13' => 'dordrecht',
-
-        // Week 2: 16 - 20 september 2026
-        '2026-09-16' => 'leiden',
-        '2026-09-17' => 'arnhem',
-        '2026-09-18' => 'culemborg',
-        '2026-09-19' => 'almere',
-        '2026-09-20' => 'antwerpen',
-
-        // Week 3: 23 - 27 september 2026
-        '2026-09-23' => 'hilversum',
-        '2026-09-24' => 'venlo',
-        '2026-09-25' => 'lelystad',
-        '2026-09-26' => 'bergen op zoom',
-        '2026-09-27' => 'amersfoort',
-
-        // Week 4: 30 september - 4 oktober 2026
-        '2026-09-30' => 'alphen aan den rijn',
-        '2026-10-01' => 'enschede',
-        '2026-10-02' => 'amstelveen',
-        '2026-10-03' => 'tilburg',
-        '2026-10-04' => 'hoofddorp',
+        // 21 - 25 oktober 2026
+        '2026-10-21' => 'woerden',
+        '2026-10-22' => 'venlo',
+        '2026-10-23' => 'hoorn',
+        '2026-10-24' => 'zoetermeer',
+        '2026-10-25' => 'dordrecht',
     ],
 ];
