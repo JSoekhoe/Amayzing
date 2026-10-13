@@ -191,7 +191,7 @@ return [
         '2026-10-15' => 'middelburg',
         '2026-10-16' => 'den bosch',
         '2026-10-17' => 'den haag',
-        '2026-10-18' => 'gouda',
+    
 
         // 21 - 25 oktober 2026
         '2026-10-21' => 'woerden',
