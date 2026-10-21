@@ -9,7 +9,7 @@
 
                 <a href="{{ route('home') }}">
                     <img src="{{ asset('images/logo.svg') }}"
-                         alt="Jamay Tuller Patisserie Logo"
+                         alt="aMayzing"
                          class="w-32 h-32 object-contain">
                 </a>
 
