@@ -107,6 +107,10 @@ return [
             'center' => ['lat' => 52.3026, 'lng' => 4.6881],
         ],
 
+        'huizen' => [
+            'center' => ['lat' => 52.2992, 'lng' => 5.2418],
+        ],
+
         'hoorn' => [
             'center' => ['lat' => 52.6420, 'lng' => 5.0597],
         ],
@@ -178,25 +182,32 @@ return [
 
     /// datum-gedreven bezorgplanning
     'date_schedule' => [
-
-        // 7 - 11 oktober 2026
-        '2026-10-07' => 'almere',
-        '2026-10-08' => 'eindhoven',
-        '2026-10-09' => 'utrecht',
-        '2026-10-10' => 'haarlem',
-        '2026-10-11' => 'rotterdam',
-
-        // 14 - 18 oktober 2026
-        '2026-10-14' => 'diemen',
-        '2026-10-15' => 'middelburg',
-        '2026-10-16' => 'den bosch',
-        '2026-10-17' => 'den haag',
-    
-
+        
         // 21 - 25 oktober 2026
         '2026-10-21' => 'woerden',
         '2026-10-22' => 'venlo',
         '2026-10-23' => 'hoorn',
         '2026-10-24' => 'zoetermeer',
+
+        // 28 oktober - 1 november 2026
+        '2026-10-28' => 'gouda',
+        '2026-10-29' => 'dordrecht',
+        '2026-10-30' => 'apeldoorn',
+        '2026-10-31' => 'den haag',
+        '2026-11-01' => 'lelystad',
+
+        // 4 - 8 november 2026
+        '2026-11-04' => 'huizen',
+        '2026-11-05' => 'utrecht',
+        '2026-11-06' => 'groningen',
+        '2026-11-07' => 'amersfoort',
+        '2026-11-08' => 'rotterdam',
+
+        // 11 - 15 november 2026
+        '2026-11-11' => 'tilburg',
+        '2026-11-12' => 'zwolle',
+        '2026-11-13' => 'hilversum',
+        '2026-11-14' => 'enschede',
+        '2026-11-15' => 'leiden',
     ],
 ];
