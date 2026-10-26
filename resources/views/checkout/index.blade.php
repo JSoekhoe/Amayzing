@@ -227,7 +227,7 @@
                 date.setDate(today.getDate() + i);
                 const dayName = date.toLocaleDateString('nl-NL', { weekday: 'long' }).toLowerCase();
                 if(hours[dayName] && hours[dayName].open !== hours[dayName].close) {
-                    const isoDate = date.toISOString().split('T')[0];
+                    const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                     const option = document.createElement('option');
                     option.value = isoDate;
                     option.textContent = date.toLocaleDateString('nl-NL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -242,7 +242,9 @@
             const location = locationSelect.value;
             const dateValue = dateSelect.value;
             const hours = pickupLocations[location]['hours'];
-            const dayName = new Date(dateValue).toLocaleDateString('nl-NL', { weekday: 'long' }).toLowerCase();
+            cconst [year, month, day] = dateValue.split('-').map(Number);
+            const localDate = new Date(year, month - 1, day);
+            const dayName = localDate.toLocaleDateString('nl-NL', { weekday: 'long' }).toLowerCase();
             timeSelect.innerHTML = '';
 
             if(hours[dayName] && hours[dayName].open !== hours[dayName].close) {
