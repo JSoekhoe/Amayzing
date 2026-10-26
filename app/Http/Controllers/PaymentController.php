@@ -30,7 +30,7 @@ class PaymentController extends Controller
         $amount = number_format($request->input('amount'), 2, '.', '');
 
         $mollie = new \Mollie\Api\MollieApiClient();
-        $mollie->setApiKey(env('MOLLIE_KEY'));
+        $mollie->setApiKey(config('services.mollie.key'));
 
         try {
             $order = Order::findOrFail($request->input('order_id'));
@@ -62,7 +62,7 @@ class PaymentController extends Controller
     public function webhook(Request $request)
     {
         $mollie = new MollieApiClient();
-        $mollie->setApiKey(env('MOLLIE_KEY'));
+        $mollie->setApiKey(config('services.mollie.key'));
 
         $paymentId = $request->input('id');
 
