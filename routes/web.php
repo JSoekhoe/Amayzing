@@ -16,6 +16,7 @@ use App\Http\Controllers\{
     FaqController,
 };
 use Illuminate\Support\Facades\Config;
+use App\Models\NewsletterSubscriber;
 
 // Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -68,6 +69,20 @@ Route::get('/levering', function () {
 
 // FAQ
 Route::get('/faq', [FaqController::class, 'index'])->name('faq');
+
+// Nieuwsbrief afmelden
+Route::get('/newsletter/unsubscribe/{token}', function ($token) {
+    $subscriber = NewsletterSubscriber::where('unsubscribe_token', $token)->firstOrFail();
+
+    if ($subscriber->is_subscribed) {
+        $subscriber->update([
+            'is_subscribed' => false,
+            'unsubscribed_at' => now(),
+        ]);
+    }
+
+    return view('newsletter.unsubscribed');
+})->name('newsletter.unsubscribe');
 
 // Admin routes (alleen voor beheerders)
 Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')
