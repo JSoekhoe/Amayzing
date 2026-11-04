@@ -31,9 +31,9 @@ class ImportOrderEmails extends Command
                     $subscriber = NewsletterSubscriber::firstOrCreate(
                         ['email' => $email],
                         [
-                            'is_subscribed' => false,
+                            'is_subscribed' => true,
                             'unsubscribe_token' => Str::random(64),
-                            'consented_at' => null,
+                            'consented_at' => now(),
                         ]
                     );
 

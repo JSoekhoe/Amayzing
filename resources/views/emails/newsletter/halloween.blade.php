@@ -104,7 +104,17 @@
 
                     </td>
                 </tr>
-
+                <!-- Halloween productfoto -->
+                <tr>
+                    <td align="center" style="padding: 20px 0 30px;">
+                        <img
+                            src="https://www.jamaytuller.com/images/newsletter/halloween-box.jpeg"
+                            alt="De Halloween Box van Jamay Tuller Patisserie"
+                            width="600"
+                            style="display:block; width:100%; max-width:600px; height:auto; border:0;"
+                        >
+                    </td>
+                </tr>
                 <tr>
                     <td style="background:#211b1a; padding:25px; text-align:center; color:#ffffff; font-size:12px;">
                         <p>Jamay Tuller Patisserie</p>
