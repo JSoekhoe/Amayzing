@@ -13,16 +13,16 @@ use Throwable;
 class SendHalloweenNewsletter extends Command
 {
     protected $signature = 'newsletter:send-halloween
-                            {--test= : Verstuur een testmail naar dit e-mailadres}
-                            {--send : Verstuur de nieuwsbrief naar alle geldige abonnees}';
+                            {--test= : Verstuur een testmail}
+                            {--send : Verstuur de nieuwsbrief}';
 
     protected $description = 'Verstuur de Halloween nieuwsbrief';
 
     public function handle(): int
     {
         $campaign = 'halloween-box-2026';
+        $dailyLimit = 400;
 
-        // Testmail
         if ($email = $this->option('test')) {
             try {
                 $unsubscribeUrl = URL::route('newsletter.unsubscribe', [
@@ -49,32 +49,44 @@ class SendHalloweenNewsletter extends Command
             return self::FAILURE;
         }
 
+        $sentToday = DB::table('newsletter_campaign_sends')
+            ->whereDate('sent_at', today())
+            ->count();
+
+        $remaining = max(0, $dailyLimit - $sentToday);
+
+        if ($remaining === 0) {
+            $this->warn('De dagelijkse limiet van 400 mails is bereikt.');
+
+            return self::SUCCESS;
+        }
+
         $subscribers = NewsletterSubscriber::query()
             ->where('is_subscribed', true)
             ->whereNotNull('consented_at')
+            ->whereNotExists(function ($query) use ($campaign) {
+                $query->selectRaw('1')
+                    ->from('newsletter_campaign_sends')
+                    ->whereColumn(
+                        'newsletter_campaign_sends.newsletter_subscriber_id',
+                        'newsletter_subscribers.id'
+                    )
+                    ->where('campaign', $campaign);
+            })
+            ->orderBy('id')
+            ->limit($remaining)
             ->get();
 
         if ($subscribers->isEmpty()) {
-            $this->warn('Er zijn geen abonnees met geregistreerde toestemming.');
+            $this->warn('Er zijn geen nieuwe abonnees om te mailen.');
 
             return self::SUCCESS;
         }
 
         $sent = 0;
-        $skipped = 0;
         $failed = 0;
 
         foreach ($subscribers as $subscriber) {
-            $alreadySent = DB::table('newsletter_campaign_sends')
-                ->where('newsletter_subscriber_id', $subscriber->id)
-                ->where('campaign', $campaign)
-                ->exists();
-
-            if ($alreadySent) {
-                $skipped++;
-                continue;
-            }
-
             try {
                 $unsubscribeUrl = URL::route('newsletter.unsubscribe', [
                     'token' => $subscriber->unsubscribe_token,
@@ -106,8 +118,8 @@ class SendHalloweenNewsletter extends Command
 
         $this->newLine();
         $this->info("Verzonden: {$sent}");
-        $this->info("Overgeslagen: {$skipped}");
         $this->info("Mislukt: {$failed}");
+        $this->info("Dagelijkse limiet: {$dailyLimit}");
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
     }
