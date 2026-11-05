@@ -23,13 +23,14 @@ class PaymentController extends Controller
     public function process(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0.5',
             'order_id' => 'required|integer|exists:orders,id',
         ]);
 
-        $amount = number_format($request->input('amount'), 2, '.', '');
+        $order = Order::findOrFail($request->input('order_id'));
 
+        $amount = number_format($order->total_price, 2, '.', '');
         $mollie = new \Mollie\Api\MollieApiClient();
+
         $mollie->setApiKey(config('services.mollie.key'));
 
         try {
@@ -67,49 +68,58 @@ class PaymentController extends Controller
         $paymentId = $request->input('id');
 
         try {
+            if (!$paymentId) {
+                return response('Payment ID ontbreekt', 400);
+            }
+
             $payment = $mollie->payments->get($paymentId);
             $orderId = $payment->metadata->order_id ?? null;
 
-            \Log::info("Webhook ontvangen voor payment ID: {$paymentId} met status: {$payment->status}");
-
             if (!$orderId) {
-                \Log::warning("Webhook: Geen order_id metadata gevonden voor betaling ID: {$paymentId}");
                 return response('Metadata order_id ontbreekt', 400);
             }
 
             $order = Order::with('items.product')->find($orderId);
 
             if (!$order) {
-                \Log::warning("Webhook: Geen order gevonden voor betaling ID: {$paymentId}");
                 return response('Order not found', 404);
             }
 
             if ($payment->status === 'paid' && !$order->paid_at) {
-                $updated = $order->update([
+
+                $order->update([
                     'paid_at' => now(),
                     'status' => 'paid',
                 ]);
 
-                if ($updated) {
-                    \Log::info("Order #{$order->id} status bijgewerkt naar 'paid' en betaaldatum ingesteld.");
+                \Log::info("Order #{$order->id} succesvol betaald.");
 
-                    // Send confirmation mails
-                    Mail::to($order->email)->send(new \App\Mail\OrderConfirmation($order));
-                    Mail::to('amayzingpastry@gmail.com')->send(new \App\Mail\OrderConfirmation($order));
+                // Klantbevestiging
+                try {
+                    Mail::to($order->email)
+                        ->send(new \App\Mail\OrderConfirmation($order));
 
-                    \Log::info("Order confirmation mails verzonden voor order #{$order->id}");
-                } else {
-                    // Update status ongeacht wat het is (mislukt, geannuleerd, verlopen etc.)
-                    $order->update(['status' => $payment->status]);
-                    \Log::info("Order status geüpdatet naar {$payment->status}.");
+                    \Log::info("Klantmail verzonden voor order #{$order->id}.");
+                } catch (\Exception $e) {
+                    \Log::error("Klantmail mislukt voor order #{$order->id}: " . $e->getMessage());
                 }
-            } else {
-                \Log::info("Order #{$order->id} status niet bijgewerkt. Payment status: {$payment->status}, paid_at: {$order->paid_at}");
+
+                // Bedrijfsbevestiging
+                try {
+                    Mail::to('amayzingpastry@gmail.com')
+                        ->send(new \App\Mail\OrderConfirmation($order));
+
+                    \Log::info("Bedrijfsmail verzonden voor order #{$order->id}.");
+                } catch (\Exception $e) {
+                    \Log::error("Bedrijfsmail mislukt voor order #{$order->id}: " . $e->getMessage());
+                }
             }
 
             return response('OK', 200);
+
         } catch (\Exception $e) {
             \Log::error('Mollie webhook fout: ' . $e->getMessage());
+
             return response('Webhook error', 500);
         }
     }

@@ -287,14 +287,40 @@ class OrderAdminController extends Controller
             'timeslot' => 'required|string',
         ]);
 
+        // Tijdslot opslaan
         $order->update([
             'timeslot' => $request->input('timeslot'),
         ]);
 
+        // E-mail proberen te versturen
         if ($order->email) {
-            Mail::to($order->email)->send(new TimeslotNotification($order, $order->timeslot));
+            try {
+                Mail::to($order->email)->send(
+                    new TimeslotNotification($order, $order->timeslot)
+                );
+
+                return redirect()->back()->with(
+                    'success',
+                    'Tijdslot bijgewerkt en e-mail verstuurd!'
+                );
+
+            } catch (\Throwable $e) {
+
+                \Log::error('Timeslot e-mail mislukt', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return redirect()->back()->with(
+                    'success',
+                    'Tijdslot bijgewerkt. E-mail kon niet worden verstuurd.'
+                );
+            }
         }
 
-        return redirect()->back()->with('success', 'Tijdslot succesvol toegewezen en e-mail verstuurd!');
+        return redirect()->back()->with(
+            'success',
+            'Tijdslot succesvol bijgewerkt!'
+        );
     }
 }
