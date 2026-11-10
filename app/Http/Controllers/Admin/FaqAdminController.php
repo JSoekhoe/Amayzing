@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Faq;
 use Illuminate\Http\Request;
+use Mews\Purifier\Facades\Purifier;
 
 class FaqAdminController extends Controller
 {
@@ -29,6 +30,7 @@ class FaqAdminController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        $validated['answer'] = Purifier::clean($validated['answer'], 'faq');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_active'] = $request->boolean('is_active');
 
@@ -53,6 +55,7 @@ class FaqAdminController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        $validated['answer'] = Purifier::clean($validated['answer'], 'faq');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_active'] = $request->boolean('is_active');
 

@@ -63,7 +63,7 @@
                             [&_a]:font-semibold
                             [&_a]:hover:text-gray-600
                             [&_a]:transition">
-                                {!! $faq->answer !!}
+                                {!! clean($faq->answer, 'faq') !!}
                             </div>
                         </div>
 
