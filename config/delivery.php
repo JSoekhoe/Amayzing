@@ -151,6 +151,10 @@ return [
             'center' => ['lat' => 51.9244, 'lng' => 4.4777],
         ],
 
+        'soest' => [
+            'center' => ['lat' => 52.1730, 'lng' => 5.2910],
+        ],
+
         'tilburg' => [
             'center' => ['lat' => 51.5606, 'lng' => 5.0919],
         ],
@@ -183,31 +187,32 @@ return [
     /// datum-gedreven bezorgplanning
     'date_schedule' => [
         
-        // 21 - 25 oktober 2026
-        '2026-10-21' => 'woerden',
-        '2026-10-22' => 'venlo',
-        '2026-10-23' => 'hoorn',
-        '2026-10-24' => 'zoetermeer',
-
-        // 28 oktober - 1 november 2026
-        '2026-10-28' => 'gouda',
-        '2026-10-29' => 'dordrecht',
-        '2026-10-30' => 'apeldoorn',
-        '2026-10-31' => 'den haag',
-        '2026-11-01' => 'lelystad',
-
-        // 4 - 8 november 2026
-        '2026-11-04' => 'huizen',
-        '2026-11-05' => 'utrecht',
-        '2026-11-06' => 'groningen',
-        '2026-11-07' => 'amersfoort',
-        '2026-11-08' => 'rotterdam',
-
         // 11 - 15 november 2026
         '2026-11-11' => 'tilburg',
         '2026-11-12' => 'zwolle',
         '2026-11-13' => 'hilversum',
         '2026-11-14' => 'enschede',
         '2026-11-15' => 'leiden',
+
+        // 18 - 22 november 2026
+        '2026-11-18' => 'soest',
+        '2026-11-19' => 'den bosch',
+        '2026-11-20' => 'arnhem',
+        '2026-11-21' => 'den haag',
+        '2026-11-22' => 'lelystad',
+
+        // 25 - 29 november 2026
+        '2026-11-25' => 'culemborg',
+        '2026-11-26' => 'breda',
+        '2026-11-27' => 'haarlem',
+        '2026-11-28' => 'alphen aan den rijn',
+        '2026-11-29' => 'rotterdam',
+
+        // 2 - 6 december 2026
+        '2026-12-02' => 'utrecht',
+        '2026-12-03' => 'eindhoven',
+        '2026-12-04' => 'almere',
+        '2026-12-05' => 'dordrecht',
+        '2026-12-06' => 'amsterdam',
     ],
 ];
