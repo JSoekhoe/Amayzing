@@ -186,7 +186,7 @@ return [
 
     /// datum-gedreven bezorgplanning
     'date_schedule' => [
-        
+
         // 11 - 15 november 2026
         '2026-11-11' => 'tilburg',
         '2026-11-12' => 'zwolle',
